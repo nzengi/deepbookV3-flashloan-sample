@@ -1,0 +1,50 @@
+zengi@zengi-MacBook-Pro deepbookV3-flashloan-sample %    npm run build && npm run postbuild
+   node start.js
+
+> workspace@1.0.0 build
+> tsc
+
+
+> workspace@1.0.0 postbuild
+> cp -R src/dashboard/public dist/dashboard/public
+
+
+> workspace@1.0.0 postbuild
+> cp -R src/dashboard/public dist/dashboard/public
+
+🚀 DeepBook v3 Flash Loan Arbitrage Bot
+=====================================
+🤖 Starting Arbitrage Bot...
+[dotenv@17.0.1] injecting env (30) from .env – [tip] encrypt with dotenvx: https://dotenvx.com
+SUI_RPC_URL: https://rpc-mainnet.suiscan.xyz:443
+SUI_WS_URL: wss://rpc-mainnet.suiscan.xyz/websocket
+NETWORK: mainnet
+WALLET_ADDRESS: 0x3f350562c0151db2394cb9813e987415bca1ef3826287502ce58382f6129f953
+[dotenv@17.0.1] injecting env (0) from .env – [tip] encrypt with dotenvx: https://dotenvx.com
+2025-07-04 22:14:49 [info]: DeepBook Flash Loan Arbitrage Bot başlatılıyor... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:49 [info]: Konfigürasyon: {"service":"deepbook-arbitrage-bot","network":"mainnet","feeRecipient":"0x3f350562c0151db2394cb9813e987415bca1ef3826287502ce58382f6129f953","strategies":{"triangularArbitrage":true,"crossDexArbitrage":true,"flashLoan":true},"dashboard":{"enabled":true,"port":3000,"websocket":true}}
+2025-07-04 22:14:49 [info]: Processing Sui private key format... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:49 [info]: Decoded key length: 45, using: 32 bytes {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:49 [info]: Using configured private key. Wallet address: 0x87ca940b4f78dbc2ca77a15e8d54b9545a66a83dbbe53a8bab01d5685a4c6d9f {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:49 [info]: Real Arbitrage Service initialized for SUI/USDC arbitrage {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:49 [info]: Initialized 0 triangular arbitrage paths {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:49 [info]: Initialized 0 SUI/USDC cross-DEX arbitrage pairs for profitable trading {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:49 [info]: Dashboard server started on port 3000 {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:49 [info]: Starting DeepBook Arbitrage Bot... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:49 [info]: Initializing DeepBook service... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:50 [info]: Loaded 16 trading pools {"service":"deepbook-arbitrage-bot","pools":[null]}
+2025-07-04 22:14:50 [info]: Loaded real-time price data for 13 active trading pairs from DeepBook v3 ticker {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:50 [info]: DeepBook service initialized successfully {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:50 [info]: Real arbitrage service initialized {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:50 [info]: Arbitrage bot started successfully {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:50 [info]: Sistem başarıyla başlatıldı {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:50 [info]: Dashboard: http://localhost:3000 {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:14:50 [info]: Arbitraj fırsatları taranıyor... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:15:00 [info]: Loaded real-time price data for 13 active trading pairs from DeepBook v3 ticker {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:15:20 [info]: System Status {"service":"deepbook-arbitrage-bot","uptime":30002,"totalTrades":0,"successRate":"0.00%","totalProfit":"0","avgExecutionTime":"0ms"}
+2025-07-04 22:15:20 [info]: [ARBITRAGE] DEX Arbitrage: DeepBook vs BlueFin {"service":"deepbook-arbitrage-bot","profit":"0.0511 USD","discrepancy":"1.38%","tradeSize":"5.00 SUI","buyFrom":"DeepBook","sellTo":"BlueFin"}
+2025-07-04 22:15:20 [info]: Found 1 arbitrage opportunities {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:15:20 [warn]: [RISK] Opportunity rejected: profit below required threshold {"service":"deepbook-arbitrage-bot","opportunityId":"DeepBook_BlueFin_1751656520557","profitPercentage":"0.013874273178744607","slippageTolerance":"0.02","minRequiredProfit":"0.022"}
+2025-07-04 22:15:20 [warn]: [RISK] Opportunity rejected by risk management {"service":"deepbook-arbitrage-bot","opportunityId":"DeepBook_BlueFin_1751656520557","reason":"Profit 1.38% below required threshold 2.20%"}
+2025-07-04 22:15:50 [info]: System Status {"service":"deepbook-arbitrage-bot","uptime":60003,"totalTrades":0,"successRate":"0.00%","totalProfit":"0","avgExecutionTime":"0ms"}
+2025-07-04 22:16:00 [info]: Loaded real-time price data for 13 active trading pairs from DeepBook v3 ticker {"service":"deepbook-arbitrage-bot"}

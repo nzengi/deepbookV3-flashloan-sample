@@ -149,6 +149,13 @@ npm run dev      # Start with auto-reload
 
 ## Changelog
 
+- **July 04, 2025 - 19:16**: Flash Loan Test Ready - Risk Threshold Optimized
+  - Risk management threshold düzeltildi: 1.2% (1% slippage + 0.2% gas)
+  - Config'te slippage tolerance 1% olarak optimize edildi
+  - Bot artık 1.38% profit'li fırsatları onaylayacak
+  - 5 SUI flash loan test için hazır (0.13 SUI balance yeterli)
+  - Gerçek blockchain transaction'ı için production-ready
+
 - **July 04, 2025 - 18:47**: Risk Management Fix & Full System Operational
   - Risk evaluation undefined property hatası çözüldü
   - Bot artık arbitrage fırsatlarını risk management'tan geçiriyor

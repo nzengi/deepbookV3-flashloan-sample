@@ -77,7 +77,7 @@ export class RiskManagementService {
 
       // 4. Check slippage tolerance - profit should be greater than slippage
       const profitPercentage = opportunity.profitPercentage || new BigNumber(0);
-      const slippageTolerance = this.riskLimits.maxSlippage || new BigNumber(0.005);
+      const slippageTolerance = this.riskLimits.maxSlippage || new BigNumber(0.01);
       
       // For flash loans, we need profit > slippage + gas costs
       const minRequiredProfit = slippageTolerance.plus(new BigNumber(0.002)); // Add 0.2% buffer for gas

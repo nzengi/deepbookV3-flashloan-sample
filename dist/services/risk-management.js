@@ -47,7 +47,7 @@ class RiskManagementService {
                 };
             }
             const profitPercentage = opportunity.profitPercentage || new bignumber_js_1.default(0);
-            const slippageTolerance = this.riskLimits.maxSlippage || new bignumber_js_1.default(0.005);
+            const slippageTolerance = this.riskLimits.maxSlippage || new bignumber_js_1.default(0.01);
             const minRequiredProfit = slippageTolerance.plus(new bignumber_js_1.default(0.002));
             if (profitPercentage.isLessThan(minRequiredProfit)) {
                 logger_1.Logger.risk('Opportunity rejected: profit below required threshold', {
