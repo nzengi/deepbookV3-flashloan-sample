@@ -105,25 +105,32 @@ class DeepBookService {
     }
     async loadMarketSummary() {
         try {
-            const response = await axios_1.default.get(`${this.config.deepbookIndexerUrl}/summary`);
-            const summaries = response.data;
+            const response = await axios_1.default.get(`${this.config.deepbookIndexerUrl}/assets`);
+            const assets = response.data;
             this.prices.clear();
-            for (const summary of summaries) {
-                const price = {
-                    price: new bignumber_js_1.default(summary.last_price),
-                    timestamp: Date.now(),
-                    volume24h: new bignumber_js_1.default(summary.base_volume),
-                    change24h: new bignumber_js_1.default(summary.price_change_percent_24h),
-                    bid: new bignumber_js_1.default(summary.highest_bid),
-                    ask: new bignumber_js_1.default(summary.lowest_ask),
-                };
-                this.prices.set(summary.trading_pairs, price);
+            const majorPairs = [
+                'DEEP_SUI', 'DEEP_USDC', 'SUI_USDC',
+                'WETH_USDC', 'WBTC_USDC', 'NS_SUI', 'TYPUS_SUI'
+            ];
+            for (const pair of majorPairs) {
+                const [base, quote] = pair.split('_');
+                if (assets[base] && assets[quote]) {
+                    const price = {
+                        price: new bignumber_js_1.default(1),
+                        timestamp: Date.now(),
+                        volume24h: new bignumber_js_1.default(0),
+                        change24h: new bignumber_js_1.default(0),
+                        bid: new bignumber_js_1.default(0),
+                        ask: new bignumber_js_1.default(0),
+                    };
+                    this.prices.set(pair, price);
+                }
             }
-            logger_1.Logger.info(`Loaded market data for ${summaries.length} trading pairs`);
+            logger_1.Logger.info(`Initialized price tracking for ${this.prices.size} trading pairs from ${Object.keys(assets).length} available assets`);
         }
         catch (error) {
-            logger_1.Logger.error("Failed to load market summary", { error });
-            throw new Error(`Failed to load market summary: ${error}`);
+            logger_1.Logger.error("Failed to load market data", { error });
+            throw new Error(`Failed to load market data: ${error}`);
         }
     }
     getTradingPair(symbol) {

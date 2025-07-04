@@ -152,29 +152,40 @@ export class DeepBookService {
    */
   async loadMarketSummary(): Promise<void> {
     try {
+      // DeepBook /summary endpoint has 502 errors, use /assets to get available trading pairs
       const response = await axios.get(
-        `${this.config.deepbookIndexerUrl}/summary`
+        `${this.config.deepbookIndexerUrl}/assets`
       );
-      const summaries: DeepBookSummary[] = response.data;
+      const assets = response.data;
 
+      // Initialize price tracking for major trading pairs based on available assets
       this.prices.clear();
-      for (const summary of summaries) {
-        const price: Price = {
-          price: new BigNumber(summary.last_price),
-          timestamp: Date.now(),
-          volume24h: new BigNumber(summary.base_volume),
-          change24h: new BigNumber(summary.price_change_percent_24h),
-          bid: new BigNumber(summary.highest_bid),
-          ask: new BigNumber(summary.lowest_ask),
-        };
+      
+      const majorPairs = [
+        'DEEP_SUI', 'DEEP_USDC', 'SUI_USDC', 
+        'WETH_USDC', 'WBTC_USDC', 'NS_SUI', 'TYPUS_SUI'
+      ];
 
-        this.prices.set(summary.trading_pairs, price);
+      for (const pair of majorPairs) {
+        const [base, quote] = pair.split('_');
+        if (assets[base] && assets[quote]) {
+          // Initialize placeholder - will be updated by real-time price calls
+          const price: Price = {
+            price: new BigNumber(1),
+            timestamp: Date.now(),
+            volume24h: new BigNumber(0),
+            change24h: new BigNumber(0),
+            bid: new BigNumber(0),
+            ask: new BigNumber(0),
+          };
+          this.prices.set(pair, price);
+        }
       }
 
-      Logger.info(`Loaded market data for ${summaries.length} trading pairs`);
+      Logger.info(`Initialized price tracking for ${this.prices.size} trading pairs from ${Object.keys(assets).length} available assets`);
     } catch (error) {
-      Logger.error("Failed to load market summary", { error });
-      throw new Error(`Failed to load market summary: ${error}`);
+      Logger.error("Failed to load market data", { error });
+      throw new Error(`Failed to load market data: ${error}`);
     }
   }
 
