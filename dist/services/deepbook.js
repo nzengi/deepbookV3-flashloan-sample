@@ -166,20 +166,24 @@ class DeepBookService {
     }
     async createFlashLoanBase(poolId, amount) {
         const txBlock = new transactions_1.TransactionBlock();
-        const [borrowCoin, flashLoan] = txBlock.moveCall({
+        const result = txBlock.moveCall({
             target: `${this.config.deepbookPackageId}::pool::borrow_flashloan_base`,
             typeArguments: [],
             arguments: [txBlock.object(poolId), txBlock.pure(amount.toString())],
         });
+        const borrowCoin = result[0];
+        const flashLoan = result[1];
         return { txBlock, borrowCoin, flashLoan };
     }
     async createFlashLoanQuote(poolId, amount) {
         const txBlock = new transactions_1.TransactionBlock();
-        const [borrowCoin, flashLoan] = txBlock.moveCall({
+        const result = txBlock.moveCall({
             target: `${this.config.deepbookPackageId}::pool::borrow_flashloan_quote`,
             typeArguments: [],
             arguments: [txBlock.object(poolId), txBlock.pure(amount.toString())],
         });
+        const borrowCoin = result[0];
+        const flashLoan = result[1];
         return { txBlock, borrowCoin, flashLoan };
     }
     async returnFlashLoanBase(txBlock, poolId, coin, flashLoan) {

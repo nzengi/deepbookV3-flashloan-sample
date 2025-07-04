@@ -246,11 +246,14 @@ export class DeepBookService {
     const txBlock = new TransactionBlock();
 
     // Borrow flash loan base asset
-    const [borrowCoin, flashLoan] = txBlock.moveCall({
+    const result = txBlock.moveCall({
       target: `${this.config.deepbookPackageId}::pool::borrow_flashloan_base`,
       typeArguments: [], // Will be filled based on pool
       arguments: [txBlock.object(poolId), txBlock.pure(amount.toString())],
     });
+    
+    const borrowCoin = result[0];
+    const flashLoan = result[1];
 
     return { txBlock, borrowCoin, flashLoan };
   }
@@ -265,11 +268,14 @@ export class DeepBookService {
     const txBlock = new TransactionBlock();
 
     // Borrow flash loan quote asset
-    const [borrowCoin, flashLoan] = txBlock.moveCall({
+    const result = txBlock.moveCall({
       target: `${this.config.deepbookPackageId}::pool::borrow_flashloan_quote`,
       typeArguments: [], // Will be filled based on pool
       arguments: [txBlock.object(poolId), txBlock.pure(amount.toString())],
     });
+    
+    const borrowCoin = result[0];
+    const flashLoan = result[1];
 
     return { txBlock, borrowCoin, flashLoan };
   }

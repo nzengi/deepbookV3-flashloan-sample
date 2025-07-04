@@ -1,0 +1,100 @@
+zengi@zengi-MacBook-Pro deepbookV3-flashloan-sample %    npm run build && npm run postbuild
+   node start.js
+
+> workspace@1.0.0 build
+> tsc
+
+
+> workspace@1.0.0 postbuild
+> cp -R src/dashboard/public dist/dashboard/public
+
+
+> workspace@1.0.0 postbuild
+> cp -R src/dashboard/public dist/dashboard/public
+
+🚀 DeepBook v3 Flash Loan Arbitrage Bot
+=====================================
+🤖 Starting Arbitrage Bot...
+[dotenv@17.0.1] injecting env (28) from .env – [tip] encrypt with dotenvx: https://dotenvx.com
+SUI_RPC_URL: https://rpc-mainnet.suiscan.xyz:443
+SUI_WS_URL: wss://rpc-mainnet.suiscan.xyz/websocket
+NETWORK: mainnet
+WALLET_ADDRESS: 0x3f350562c0151db2394cb9813e987415bca1ef3826287502ce58382f6129f953
+[dotenv@17.0.1] injecting env (0) from .env – [tip] encrypt with dotenvx: https://dotenvx.com
+2025-07-04 22:28:01 [info]: DeepBook Flash Loan Arbitrage Bot başlatılıyor... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:01 [info]: Konfigürasyon: {"service":"deepbook-arbitrage-bot","network":"mainnet","feeRecipient":"0x3f350562c0151db2394cb9813e987415bca1ef3826287502ce58382f6129f953","strategies":{"triangularArbitrage":true,"crossDexArbitrage":true,"flashLoan":true},"dashboard":{"enabled":true,"port":3000,"websocket":true}}
+2025-07-04 22:28:01 [info]: Processing Sui private key format... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:01 [info]: Decoded key length: 45, using: 32 bytes {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:01 [info]: Using configured private key. Wallet address: 0x87ca940b4f78dbc2ca77a15e8d54b9545a66a83dbbe53a8bab01d5685a4c6d9f {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:01 [info]: Real Arbitrage Service initialized for SUI/USDC arbitrage {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:01 [info]: Initialized 0 triangular arbitrage paths {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:01 [info]: Initialized 0 SUI/USDC cross-DEX arbitrage pairs for profitable trading {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:01 [info]: Dashboard server started on port 3000 {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:01 [info]: Starting DeepBook Arbitrage Bot... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:01 [info]: Initializing DeepBook service... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:02 [info]: Loaded 16 trading pools {"service":"deepbook-arbitrage-bot","pools":[null]}
+2025-07-04 22:28:02 [info]: Loaded real-time price data for 12 active trading pairs from DeepBook v3 ticker {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:02 [info]: DeepBook service initialized successfully {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:02 [info]: Real arbitrage service initialized {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:02 [info]: Arbitrage bot started successfully {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:02 [info]: Sistem başarıyla başlatıldı {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:02 [info]: Dashboard: http://localhost:3000 {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:02 [info]: Arbitraj fırsatları taranıyor... {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:04 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2185","cetus":"4.2447","bluefin":"4.2501","opportunities":0}
+2025-07-04 22:28:06 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2185","cetus":"4.2400","bluefin":"4.2419","opportunities":0}
+2025-07-04 22:28:08 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2185","cetus":"4.2416","bluefin":"4.2395","opportunities":0}
+2025-07-04 22:28:10 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2728","cetus":"4.2400","bluefin":"4.2528","opportunities":0}
+2025-07-04 22:28:12 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2728","cetus":"4.2415","bluefin":"4.2463","opportunities":0}
+2025-07-04 22:28:14 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2728","cetus":"4.2409","bluefin":"4.2499","opportunities":0}
+2025-07-04 22:28:16 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2793","cetus":"4.2402","bluefin":"4.2509","opportunities":0}
+2025-07-04 22:28:18 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2793","cetus":"4.2575","bluefin":"4.2597","opportunities":0}
+2025-07-04 22:28:20 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2793","cetus":"4.2451","bluefin":"4.2551","opportunities":0}
+2025-07-04 22:28:22 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2118","cetus":"4.2431","bluefin":"4.2498","opportunities":0}
+2025-07-04 22:28:24 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2118","cetus":"4.2493","bluefin":"4.2550","opportunities":0}
+2025-07-04 22:28:26 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2118","cetus":"4.2490","bluefin":"4.2517","opportunities":0}
+2025-07-04 22:28:28 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2299","cetus":"4.2482","bluefin":"4.2618","opportunities":0}
+2025-07-04 22:28:30 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2299","cetus":"4.2411","bluefin":"4.2594","opportunities":0}
+2025-07-04 22:28:32 [info]: System Status {"service":"deepbook-arbitrage-bot","uptime":30002,"totalTrades":0,"successRate":"0.00%","totalProfit":"0","avgExecutionTime":"0ms"}
+2025-07-04 22:28:32 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2299","cetus":"4.2463","bluefin":"4.2503","opportunities":0}
+2025-07-04 22:28:34 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2462","cetus":"4.2491","bluefin":"4.2519","opportunities":0}
+2025-07-04 22:28:36 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2462","cetus":"4.2548","bluefin":"4.2400","opportunities":0}
+2025-07-04 22:28:38 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2462","cetus":"4.2413","bluefin":"4.2475","opportunities":0}
+2025-07-04 22:28:40 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2115","cetus":"4.2440","bluefin":"4.2418","opportunities":0}
+2025-07-04 22:28:42 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2115","cetus":"4.2469","bluefin":"4.2519","opportunities":0}
+2025-07-04 22:28:44 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2115","cetus":"4.2405","bluefin":"4.2536","opportunities":0}
+2025-07-04 22:28:46 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2030","cetus":"4.2505","bluefin":"4.2509","opportunities":0}
+2025-07-04 22:28:48 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2030","cetus":"4.2409","bluefin":"4.2379","opportunities":0}
+2025-07-04 22:28:50 [info]: [ARBITRAGE] DEX Arbitrage: DeepBook vs BlueFin {"service":"deepbook-arbitrage-bot","profit":"0.0335 USD","discrepancy":"1.30%","tradeSize":"5.00 SUI","buyFrom":"DeepBook","sellTo":"BlueFin"}
+2025-07-04 22:28:50 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2030","cetus":"4.2505","bluefin":"4.2582","opportunities":1}
+2025-07-04 22:28:50 [info]: Found 1 arbitrage opportunities {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:28:50 [warn]: [RISK] Trade recorded {"service":"deepbook-arbitrage-bot","tradeId":"trade-1751657330620-100lwvks8","status":"pending","dailyPnL":"0","activeTrades":1}
+2025-07-04 22:28:50 [info]: [ARBITRAGE] Executing cross-DEX arbitrage {"service":"deepbook-arbitrage-bot","opportunityId":"DeepBook_BlueFin_1751657330616","expectedProfit":"0.03356570346008835723801086247707375"}
+2025-07-04 22:28:50 [info]: [FLASHLOAN] Executing flash loan arbitrage {"service":"deepbook-arbitrage-bot","opportunityId":"DeepBook_BlueFin_1751657330616","type":"cross-dex","expectedProfit":"0.03356570346008835723801086247707375","tradeAmount":"5"}
+2025-07-04 22:28:50 [error]: Flash loan arbitrage execution error {"service":"deepbook-arbitrage-bot","error":{},"opportunityId":"DeepBook_BlueFin_1751657330616","executionTime":1}
+2025-07-04 22:28:50 [warn]: [RISK] Trade recorded {"service":"deepbook-arbitrage-bot","tradeId":"trade-1751657330620-100lwvks8","status":"failed","dailyPnL":"0","activeTrades":0}
+2025-07-04 22:28:50 [error]: Arbitrage opportunity execution failed {"service":"deepbook-arbitrage-bot","opportunityId":"DeepBook_BlueFin_1751657330616","error":"Cannot read properties of undefined (reading 'length')"}
+2025-07-04 22:28:52 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2306","cetus":"4.2588","bluefin":"4.2444","opportunities":0}
+2025-07-04 22:28:54 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2306","cetus":"4.2439","bluefin":"4.2477","opportunities":0}
+2025-07-04 22:28:56 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2306","cetus":"4.2405","bluefin":"4.2477","opportunities":0}
+2025-07-04 22:28:58 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2320","cetus":"4.2551","bluefin":"4.2576","opportunities":0}
+2025-07-04 22:29:00 [info]: Loaded real-time price data for 12 active trading pairs from DeepBook v3 ticker {"service":"deepbook-arbitrage-bot"}
+2025-07-04 22:29:00 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2320","cetus":"4.2421","bluefin":"4.2510","opportunities":0}
+2025-07-04 22:29:02 [info]: System Status {"service":"deepbook-arbitrage-bot","uptime":59983,"totalTrades":1,"successRate":"0.00%","totalProfit":"0","avgExecutionTime":"1ms"}
+2025-07-04 22:29:02 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2320","cetus":"4.2501","bluefin":"4.2599","opportunities":0}
+2025-07-04 22:29:04 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2737","cetus":"4.2519","bluefin":"4.2577","opportunities":0}
+2025-07-04 22:29:06 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2737","cetus":"4.2474","bluefin":"4.2610","opportunities":0}
+2025-07-04 22:29:08 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2737","cetus":"4.2475","bluefin":"4.2406","opportunities":0}
+2025-07-04 22:29:10 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2685","cetus":"4.2441","bluefin":"4.2605","opportunities":0}
+2025-07-04 22:29:12 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2685","cetus":"4.2439","bluefin":"4.2586","opportunities":0}
+2025-07-04 22:29:14 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2685","cetus":"4.2477","bluefin":"4.2554","opportunities":0}
+2025-07-04 22:29:16 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2415","cetus":"4.2470","bluefin":"4.2442","opportunities":0}
+2025-07-04 22:29:18 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2415","cetus":"4.2588","bluefin":"4.2401","opportunities":0}
+2025-07-04 22:29:20 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2415","cetus":"4.2450","bluefin":"4.2572","opportunities":0}
+2025-07-04 22:29:22 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2309","cetus":"4.2483","bluefin":"4.2474","opportunities":0}
+2025-07-04 22:29:24 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2309","cetus":"4.2496","bluefin":"4.2478","opportunities":0}
+2025-07-04 22:29:26 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2309","cetus":"4.2519","bluefin":"4.2560","opportunities":0}
+2025-07-04 22:29:28 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2383","cetus":"4.2569","bluefin":"4.2573","opportunities":0}
+2025-07-04 22:29:30 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2383","cetus":"4.2561","bluefin":"4.2593","opportunities":0}
+2025-07-04 22:29:32 [info]: System Status {"service":"deepbook-arbitrage-bot","uptime":89981,"totalTrades":1,"successRate":"0.00%","totalProfit":"0","avgExecutionTime":"1ms"}
+2025-07-04 22:29:32 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2383","cetus":"4.2575","bluefin":"4.2433","opportunities":0}
+2025-07-04 22:29:34 [info]: DEX Arbitrage scan - SUI/USDC prices: {"service":"deepbook-arbitrage-bot","deepBook":"4.2708","cetus":"4.2557","bluefin":"4.2429","opportunities":0}

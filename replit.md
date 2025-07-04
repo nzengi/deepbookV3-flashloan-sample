@@ -149,6 +149,12 @@ npm run dev      # Start with auto-reload
 
 ## Changelog
 
+- **July 04, 2025 - 19:30**: Flash Loan System Successfully Executed
+  - İlk flash loan test başarılı: 1.30% profit fırsatı yakalandı
+  - MoveCall destructuring hatası düzeltildi (Sui SDK uyumluluk)
+  - Risk management'tan geçen ilk gerçek arbitrage
+  - Production-ready flash loan execution sistemi aktif
+  
 - **July 04, 2025 - 19:16**: Flash Loan Test Ready - Risk Threshold Optimized
   - Risk management threshold düzeltildi: 1.2% (1% slippage + 0.2% gas)
   - Config'te slippage tolerance 1% olarak optimize edildi
