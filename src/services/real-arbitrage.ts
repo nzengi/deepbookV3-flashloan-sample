@@ -98,7 +98,7 @@ export class RealArbitrageService {
       const tradeSize = this.calculateOptimalTradeSize(avgPrice);
       const expectedProfit = this.calculateExpectedProfit(tradeSize, discrepancy, avgPrice);
 
-      if (expectedProfit.isGreaterThan(0.1)) { // Minimum $0.10 profit
+      if (expectedProfit.isGreaterThan(0.05)) { // Minimum $0.05 profit for test
         const opportunity: FlashLoanOpportunity = {
           id: `${dex1}_${dex2}_${Date.now()}`,
           type: 'cross-dex',
@@ -312,12 +312,11 @@ export class RealArbitrageService {
    * Calculate optimal trade size based on available liquidity
    */
   private calculateOptimalTradeSize(price: BigNumber): BigNumber {
-    // Conservative approach: Start with $50-100 USD worth of SUI
-    const usdAmount = new BigNumber(75);
-    const suiAmount = usdAmount.dividedBy(price);
+    // Conservative approach for test with available balance: 5 SUI
+    const testAmount = new BigNumber(5);
     
-    // Cap at 20 SUI for safety (about $80-85 USD)
-    return BigNumber.minimum(suiAmount, new BigNumber(20));
+    // This ensures we have enough gas with 0.13 SUI balance
+    return testAmount;
   }
 
   /**

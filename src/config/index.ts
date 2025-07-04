@@ -16,14 +16,14 @@ export const createConfig = (): BotConfig => {
 
   const riskLimits: RiskLimits = {
     maxPositionSize: new BigNumber(
-      process.env.MAX_POSITION_SIZE || "100000000000"
-    ), // 100 SUI - increased for better opportunities
-    maxDailyLoss: new BigNumber(process.env.MAX_DAILY_LOSS || "50000000000"), // 50 SUI - tighter control
-    maxSlippage: new BigNumber(process.env.MAX_SLIPPAGE || "0.02"), // 2% - reduced for v3.1 efficiency
+      process.env.MAX_POSITION_SIZE || "5000000000"
+    ), // 5 SUI - test amount for flash loan
+    maxDailyLoss: new BigNumber(process.env.MAX_DAILY_LOSS || "5000000000"), // 5 SUI - test limit
+    maxSlippage: new BigNumber(process.env.MAX_SLIPPAGE || "0.005"), // 0.5% - relaxed for test
     stopLossPercentage: new BigNumber(
-      process.env.STOP_LOSS_PERCENTAGE || "0.015"
-    ), // 1.5% - tighter stops
-    maxConcurrentTrades: parseInt(process.env.MAX_CONCURRENT_TRADES || "2"), // Focus on quality
+      process.env.STOP_LOSS_PERCENTAGE || "0.01"
+    ), // 1% - test stop loss
+    maxConcurrentTrades: parseInt(process.env.MAX_CONCURRENT_TRADES || "1"), // Single test trade
   };
 
   // Mainnet RPC/WS endpoint prioritization

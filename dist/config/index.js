@@ -15,11 +15,11 @@ const createConfig = () => {
         }
     }
     const riskLimits = {
-        maxPositionSize: new bignumber_js_1.default(process.env.MAX_POSITION_SIZE || "100000000000"),
-        maxDailyLoss: new bignumber_js_1.default(process.env.MAX_DAILY_LOSS || "50000000000"),
-        maxSlippage: new bignumber_js_1.default(process.env.MAX_SLIPPAGE || "0.02"),
-        stopLossPercentage: new bignumber_js_1.default(process.env.STOP_LOSS_PERCENTAGE || "0.015"),
-        maxConcurrentTrades: parseInt(process.env.MAX_CONCURRENT_TRADES || "2"),
+        maxPositionSize: new bignumber_js_1.default(process.env.MAX_POSITION_SIZE || "5000000000"),
+        maxDailyLoss: new bignumber_js_1.default(process.env.MAX_DAILY_LOSS || "5000000000"),
+        maxSlippage: new bignumber_js_1.default(process.env.MAX_SLIPPAGE || "0.005"),
+        stopLossPercentage: new bignumber_js_1.default(process.env.STOP_LOSS_PERCENTAGE || "0.01"),
+        maxConcurrentTrades: parseInt(process.env.MAX_CONCURRENT_TRADES || "1"),
     };
     const suiRpcUrl = process.env.SUI_RPC_URL || "https://rpc-mainnet.suiscan.xyz:443";
     const suiWsUrl = process.env.SUI_WS_URL || "wss://rpc-mainnet.suiscan.xyz/websocket";
