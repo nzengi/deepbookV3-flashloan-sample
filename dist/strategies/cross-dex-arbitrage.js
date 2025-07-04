@@ -120,13 +120,19 @@ class CrossDexArbitrageStrategy {
         const opportunity = {
             id: this.generateOpportunityId(monitoredPair, direction),
             type: "cross-dex",
+            strategy: 'Cross-DEX Arbitrage',
+            asset: monitoredPair.baseAsset,
+            amount: optimalAmount,
             pools: [monitoredPair.deepbookPair],
             path: [monitoredPair.baseAsset, monitoredPair.quoteAsset],
             expectedProfit,
             profitPercentage: priceDiscrepancyPercent,
             tradeAmount: optimalAmount,
             gasEstimate,
+            estimatedGas: gasEstimate,
             confidence: new bignumber_js_1.default(this.calculateConfidence(priceDiscrepancyPercent, externalPrice.volume24h)),
+            maxSlippage: this.maxSlippage,
+            deadline: Date.now() + 30000,
             timestamp: Date.now(),
         };
         logger_1.Logger.arbitrage("Cross-DEX arbitrage opportunity found", {

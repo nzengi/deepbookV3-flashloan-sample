@@ -1,0 +1,129 @@
+/workspace$  npm run build && npm run postbuild
+
+> workspace@1.0.0 build
+> tsc
+
+src/strategies/cetus-bluefin-arbitrage.ts:202:17 - error TS1005: ',' expected.
+
+202         metadata: {
+                    ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:209:7 - error TS1005: ',' expected.
+
+209       };
+          ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:209:8 - error TS1005: ',' expected.
+
+209       };
+           ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:211:14 - error TS1005: ':' expected.
+
+211       return opportunity;
+                 ~~~~~~~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:211:25 - error TS1005: ',' expected.
+
+211       return opportunity;
+                            ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:212:7 - error TS1005: ',' expected.
+
+212     } catch (error) {
+          ~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:221:3 - error TS1472: 'catch' or 'finally' expected.
+
+221   async execute(opportunity: FlashLoanOpportunity): Promise<FlashLoanResult> {
+      ~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:221:28 - error TS1005: ',' expected.
+
+221   async execute(opportunity: FlashLoanOpportunity): Promise<FlashLoanResult> {
+                               ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:221:51 - error TS1005: ';' expected.
+
+221   async execute(opportunity: FlashLoanOpportunity): Promise<FlashLoanResult> {
+                                                      ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:222:11 - error TS1005: ':' expected.
+
+222     const startTime = Date.now();
+              ~~~~~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:222:33 - error TS1005: ',' expected.
+
+222     const startTime = Date.now();
+                                    ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:224:9 - error TS1005: ':' expected.
+
+224     try {
+            ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:225:13 - error TS1005: ',' expected.
+
+225       Logger.flashloan(`Executing Cetus-BlueFin arbitrage: ${opportunity.pair}`, {
+                ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:229:9 - error TS1005: ',' expected.
+
+229       });
+            ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:232:13 - error TS1005: ':' expected.
+
+232       const result = await this.deepBookService.executeFlashLoanArbitrage(opportunity);
+                ~~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:232:87 - error TS1005: ',' expected.
+
+232       const result = await this.deepBookService.executeFlashLoanArbitrage(opportunity);
+                                                                                          ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:234:13 - error TS1005: ':' expected.
+
+234       const executionTime = Date.now() - startTime;
+                ~~~~~~~~~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:234:51 - error TS1005: ',' expected.
+
+234       const executionTime = Date.now() - startTime;
+                                                      ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:236:13 - error TS1005: ',' expected.
+
+236       Logger.profit(`Arbitrage completed: ${opportunity.pair}`, {
+                ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:241:9 - error TS1005: ',' expected.
+
+241       });
+            ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:243:14 - error TS1005: ':' expected.
+
+243       return result;
+                 ~~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:243:20 - error TS1005: ',' expected.
+
+243       return result;
+                       ~
+
+src/strategies/cetus-bluefin-arbitrage.ts:244:7 - error TS1005: ',' expected.
+
+244     } catch (error) {
+          ~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:260:3 - error TS1128: Declaration or statement expected.
+
+260   private calculateOptimalTradeSize(price: BigNumber): BigNumber {
+      ~~~~~~~
+
+
+Found 24 errors in the same file, starting at: src/strategies/cetus-bluefin-arbitrage.ts:202
+
+~/workspace$ 

@@ -213,16 +213,22 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
     const opportunity: FlashLoanOpportunity = {
       id: this.generateOpportunityId(monitoredPair, direction),
       type: "cross-dex",
+      strategy: 'Cross-DEX Arbitrage',
+      asset: monitoredPair.baseAsset,
+      amount: optimalAmount,
       pools: [monitoredPair.deepbookPair],
       path: [monitoredPair.baseAsset, monitoredPair.quoteAsset],
       expectedProfit,
       profitPercentage: priceDiscrepancyPercent,
       tradeAmount: optimalAmount,
       gasEstimate,
+      estimatedGas: gasEstimate,
       confidence: new BigNumber(this.calculateConfidence(
         priceDiscrepancyPercent,
         externalPrice.volume24h
       )),
+      maxSlippage: this.maxSlippage,
+      deadline: Date.now() + 30000,
       timestamp: Date.now(),
     };
 

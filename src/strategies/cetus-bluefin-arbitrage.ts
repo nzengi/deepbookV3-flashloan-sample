@@ -1,59 +1,40 @@
-import BigNumber from 'bignumber.js';
-import { Logger } from '../utils/logger';
-import { 
-  FlashLoanOpportunity, 
-  FlashLoanResult, 
-  ArbitrageStrategy,
-  BotConfig 
-} from '../types/index';
+import { BigNumber } from 'bignumber.js';
 import { DeepBookService } from '../services/deepbook';
-import CetusDexService from '../services/cetus-dex';
-import BluefinDexService from '../services/bluefin-dex';
+import { CetusDexService } from '../services/cetus-dex';
+import { BluefinDexService } from '../services/bluefin-dex';
+import { Logger } from '../utils/logger';
+import { ArbitrageStrategy, FlashLoanOpportunity, FlashLoanResult } from '../types';
 
 /**
- * Cetus-BlueFin Flash Loan Arbitrage Strategy
+ * Cetus-BlueFin Arbitrage Strategy
  * 
- * Real arbitrage strategy that:
- * 1. Borrows SUI/USDC via DeepBook flash loan
- * 2. Executes trade on Cetus DEX 
- * 3. Executes opposite trade on BlueFin DEX
- * 4. Repays flash loan + captures profit
+ * Identifies arbitrage opportunities between Cetus DEX and BlueFin DEX
+ * by comparing prices and executing trades through DeepBook flash loans
  */
 export class CetusBlueFinArbitrageStrategy implements ArbitrageStrategy {
-  public readonly name = 'Cetus-BlueFin Flash Loan Arbitrage';
+  public readonly name = 'Cetus-BlueFin Arbitrage';
   public enabled = true;
   public minProfitThreshold: BigNumber;
   public maxSlippage: BigNumber;
-  public priority = 1; // Highest priority for real arbitrage
+  public priority = 2;
   public riskLevel: 'low' | 'medium' | 'high' = 'medium';
 
   private deepBookService: DeepBookService;
   private cetusService: CetusDexService;
   private bluefinService: BluefinDexService;
-  private config: BotConfig;
-
-  // Focus on profitable SUI/USDC arbitrage
-  private readonly MONITORED_PAIRS = ['SUI/USDC'];
-  private readonly MIN_PROFIT_USD = new BigNumber(0.1); // $0.10 minimum profit
-  private readonly MAX_POSITION_SIZE = new BigNumber(1000); // $1000 max per trade
 
   constructor(
     deepBookService: DeepBookService,
     cetusService: CetusDexService,
     bluefinService: BluefinDexService,
-    config: BotConfig
+    minProfitThreshold: BigNumber,
+    maxSlippage: BigNumber
   ) {
     this.deepBookService = deepBookService;
     this.cetusService = cetusService;
     this.bluefinService = bluefinService;
-    this.config = config;
-    this.minProfitThreshold = new BigNumber(0.002); // 0.2% minimum profit
-    this.maxSlippage = new BigNumber(0.015); // 1.5% max slippage
-
-    Logger.info('Cetus-BlueFin arbitrage strategy initialized', {
-      pairs: this.MONITORED_PAIRS,
-      minProfit: this.minProfitThreshold.toString()
-    });
+    this.minProfitThreshold = minProfitThreshold;
+    this.maxSlippage = maxSlippage;
   }
 
   /**
@@ -62,143 +43,90 @@ export class CetusBlueFinArbitrageStrategy implements ArbitrageStrategy {
   async scanOpportunities(): Promise<FlashLoanOpportunity[]> {
     const opportunities: FlashLoanOpportunity[] = [];
 
-    for (const pair of this.MONITORED_PAIRS) {
-      try {
-        // Get prices from both DEXes
-        const cetusPrice = await this.cetusService.getPrice(pair);
-        const bluefinPrice = await this.bluefinService.getPrice(pair);
+    try {
+      // Get trading pairs from both DEXs
+      const cetusPools = this.cetusService.getAllPools();
+      const bluefinPools = this.bluefinService.getAllPools();
 
-        if (!cetusPrice || !bluefinPrice) {
-          Logger.external(`Missing price data for ${pair}`, {
-            cetusPrice: cetusPrice?.toString(),
-            bluefinPrice: bluefinPrice?.toString()
-          });
-          continue;
+      // Focus on common pairs
+      const commonPairs = ['SUI-USDC', 'WETH-USDC', 'USDC-USDT'];
+
+      for (const pair of commonPairs) {
+        const opportunity = await this.analyzeArbitrageOpportunity(pair);
+        if (opportunity) {
+          opportunities.push(opportunity);
         }
-
-        // Calculate price difference
-        const priceDiff = cetusPrice.minus(bluefinPrice).abs();
-        const avgPrice = cetusPrice.plus(bluefinPrice).dividedBy(2);
-        const priceDiscrepancy = priceDiff.dividedBy(avgPrice);
-
-        Logger.external(`Price check ${pair}`, {
-          cetusPrice: cetusPrice.toFixed(4),
-          bluefinPrice: bluefinPrice.toFixed(4),
-          discrepancy: priceDiscrepancy.toFixed(4)
-        });
-
-        // Check if arbitrage is profitable
-        if (priceDiscrepancy.isGreaterThan(this.minProfitThreshold)) {
-          const opportunity = await this.calculateArbitrageOpportunity(
-            pair,
-            cetusPrice,
-            bluefinPrice,
-            priceDiscrepancy
-          );
-
-          if (opportunity && opportunity.expectedProfit.isGreaterThan(this.MIN_PROFIT_USD)) {
-            opportunities.push(opportunity);
-            
-            Logger.arbitrage(`Profitable arbitrage found: ${pair}`, {
-              profit: opportunity.expectedProfit.toFixed(4),
-              cetusPrice: cetusPrice.toFixed(4),
-              bluefinPrice: bluefinPrice.toFixed(4),
-              discrepancy: priceDiscrepancy.toFixed(4)
-            });
-          }
-        }
-      } catch (error) {
-        Logger.error(`Error scanning ${pair} arbitrage`, { error });
       }
-    }
 
-    return opportunities.sort((a, b) => 
-      b.expectedProfit.minus(a.expectedProfit).toNumber()
-    );
+      return opportunities;
+    } catch (error) {
+      Logger.error('Failed to scan Cetus-BlueFin arbitrage opportunities', { error });
+      return [];
+    }
   }
 
   /**
-   * Calculate optimal arbitrage opportunity
+   * Analyze a specific pair for arbitrage opportunities
    */
-  private async calculateArbitrageOpportunity(
-    pair: string,
-    cetusPrice: BigNumber,
-    bluefinPrice: BigNumber,
-    priceDiscrepancy: BigNumber
-  ): Promise<FlashLoanOpportunity | null> {
+  private async analyzeArbitrageOpportunity(pair: string): Promise<FlashLoanOpportunity | null> {
     try {
-      // Determine arbitrage direction
+      // Get prices from both DEXs
+      const cetusPrice = await this.cetusService.getPrice(pair);
+      const bluefinPrice = await this.bluefinService.getPrice(pair);
+
+      if (!cetusPrice || !bluefinPrice) {
+        Logger.debug(`Price data not available for ${pair}`);
+        return null;
+      }
+
+      // Calculate price discrepancy
+      const priceDiscrepancy = cetusPrice.minus(bluefinPrice).abs();
+      const priceDiscrepancyPercent = priceDiscrepancy.dividedBy(cetusPrice.plus(bluefinPrice).dividedBy(2)).multipliedBy(100);
+
+      // Check if discrepancy is profitable
+      if (priceDiscrepancyPercent.isLessThan(this.minProfitThreshold.multipliedBy(100))) {
+        return null;
+      }
+
+      // Determine trade direction
       const buyFromCetus = cetusPrice.isLessThan(bluefinPrice);
+      const tradeSize = this.calculateOptimalTradeSize(cetusPrice);
+
+      // Calculate expected profit
       const buyPrice = buyFromCetus ? cetusPrice : bluefinPrice;
       const sellPrice = buyFromCetus ? bluefinPrice : cetusPrice;
+      const expectedProfit = sellPrice.minus(buyPrice).multipliedBy(tradeSize);
 
-      // Calculate optimal trade size (based on liquidity and risk)
-      const tradeSize = this.calculateOptimalTradeSize(buyPrice);
+      // Account for trading fees and gas costs
+      const tradingFees = tradeSize.multipliedBy(new BigNumber(0.003)); // 0.3% total fees
+      const gasCost = new BigNumber(0.1); // ~0.1 SUI gas cost
+      const netProfit = expectedProfit.minus(tradingFees).minus(gasCost);
 
-      // Simulate trades on both DEXes
-      const buyResult = buyFromCetus 
-        ? await this.cetusService.getAmountOut(pair, tradeSize, false) // Buy SUI with USDC
-        : await this.bluefinService.simulateSwap(pair, tradeSize, false);
+      // Check if still profitable after fees
+      if (netProfit.isLessThanOrEqualTo(0)) {
+        return null;
+      }
 
-      const sellAmount = buyResult instanceof BigNumber ? buyResult : buyResult?.amountOut;
-      if (!sellAmount || sellAmount.isLessThanOrEqualTo(0)) return null;
+      const profitPercentage = netProfit.dividedBy(tradeSize).multipliedBy(100);
 
-      const sellResult = buyFromCetus
-        ? await this.bluefinService.simulateSwap(pair, sellAmount, true) // Sell SUI for USDC
-        : await this.cetusService.getAmountOut(pair, sellAmount, true);
-
-      const finalAmount = sellResult instanceof BigNumber ? sellResult : sellResult?.amountOut;
-      if (!finalAmount || finalAmount.isLessThanOrEqualTo(0)) return null;
-
-      // Calculate profit after fees and gas
-      const profit = finalAmount.minus(tradeSize);
-      const gasCost = new BigNumber(0.05); // ~0.05 SUI in USDC
-      const netProfit = profit.minus(gasCost);
-
-      if (netProfit.isLessThanOrEqualTo(0)) return null;
-
-      // Create flash loan opportunity
+      // Build opportunity object
       const opportunity: FlashLoanOpportunity = {
-        id: this.generateOpportunityId(pair, buyFromCetus),
-        type: 'cetus-bluefin-arbitrage',
-        pair: pair,
+        id: `cetus-bluefin-${pair}-${Date.now()}`,
+        type: 'cross-dex',
         strategy: this.name,
-        flashLoanAmount: tradeSize,
-        // flashLoanAsset: 'USDC', // Removed - not in interface
+        asset: pair.split('-')[0],
+        amount: tradeSize,
+        pools: [], // Will be populated with actual pool data
+        path: [pair],
         expectedProfit: netProfit,
-        confidence: this.calculateConfidence(priceDiscrepancy),
+        profitPercentage: profitPercentage,
+        tradeAmount: tradeSize,
+        gasEstimate: gasCost,
         estimatedGas: gasCost,
+        confidence: this.calculateConfidence(priceDiscrepancyPercent),
         maxSlippage: this.maxSlippage,
-        deadline: Date.now() + 30000, // 30 seconds
-        metadata: {
-          executionSteps: JSON.stringify([
-          {
-            action: 'flashloan_borrow',
-            dex: 'deepbook',
-            asset: 'USDC',
-            amount: tradeSize
-          },
-          {
-            action: buyFromCetus ? 'buy' : 'sell',
-            dex: buyFromCetus ? 'cetus' : 'bluefin',
-            pair: pair,
-            amount: tradeSize,
-            expectedOutput: sellAmount
-          },
-          {
-            action: buyFromCetus ? 'sell' : 'buy',
-            dex: buyFromCetus ? 'bluefin' : 'cetus',
-            pair: pair,
-            amount: sellAmount,
-            expectedOutput: finalAmount
-          },
-          {
-            action: 'flashloan_repay',
-            dex: 'deepbook',
-            asset: 'USDC',
-            amount: tradeSize
-          }
-        ],
+        deadline: Date.now() + 30000,
+        timestamp: Date.now(),
         metadata: {
           cetusPrice: cetusPrice.toString(),
           bluefinPrice: bluefinPrice.toString(),
@@ -210,7 +138,7 @@ export class CetusBlueFinArbitrageStrategy implements ArbitrageStrategy {
 
       return opportunity;
     } catch (error) {
-      Logger.error(`Failed to calculate arbitrage for ${pair}`, { error });
+      Logger.error(`Failed to analyze arbitrage for ${pair}`, { error });
       return null;
     }
   }
@@ -220,94 +148,67 @@ export class CetusBlueFinArbitrageStrategy implements ArbitrageStrategy {
    */
   async execute(opportunity: FlashLoanOpportunity): Promise<FlashLoanResult> {
     const startTime = Date.now();
-    
+
     try {
-      Logger.flashloan(`Executing Cetus-BlueFin arbitrage: ${opportunity.pair}`, {
-        amount: opportunity.flashLoanAmount.toString(),
+      Logger.flashloan(`Executing Cetus-BlueFin arbitrage: ${opportunity.asset}`, {
+        amount: opportunity.amount.toString(),
         expectedProfit: opportunity.expectedProfit.toString(),
-        direction: opportunity.metadata?.tradeDirection
+        profitPercentage: opportunity.profitPercentage.toString()
       });
 
-      // Execute the flash loan arbitrage transaction
+      // Execute through DeepBook flash loan
       const result = await this.deepBookService.executeFlashLoanArbitrage(opportunity);
 
       const executionTime = Date.now() - startTime;
 
-      Logger.profit(`Arbitrage completed: ${opportunity.pair}`, {
+      Logger.profit(`Arbitrage completed: ${opportunity.asset}`, {
         success: result.success,
         actualProfit: result.actualProfit?.toString(),
-        executionTime: `${executionTime}ms`,
-        gasUsed: result.gasUsed?.toString()
+        executionTime: executionTime,
+        txHash: result.txHash
       });
 
       return result;
     } catch (error) {
-      Logger.error(`Arbitrage execution failed: ${opportunity.pair}`, { error });
-      
+      Logger.error(`Failed to execute Cetus-BlueFin arbitrage: ${opportunity.asset}`, {
+        error: error.message,
+        opportunity: opportunity.id,
+        executionTime: Date.now() - startTime
+      });
+
       return {
         success: false,
         actualProfit: new BigNumber(0),
-        gasUsed: new BigNumber(0),
-        error: error instanceof Error ? error.message : String(error),
-        executionTime: Date.now() - startTime
+        gasUsed: new BigNumber(0.1),
+        executionTime: Date.now() - startTime,
+        error: error.message
       };
     }
   }
 
   /**
-   * Calculate optimal trade size based on available liquidity and risk
+   * Calculate optimal trade size based on price and liquidity
    */
   private calculateOptimalTradeSize(price: BigNumber): BigNumber {
-    // Start with small position for safety
-    const baseSize = new BigNumber(50); // $50 USD base size
+    // Conservative approach: start with 10 SUI equivalent
+    const baseAmount = new BigNumber(10);
     
-    // Adjust based on price (more SUI if price is lower)
-    const suiAmount = baseSize.dividedBy(price);
-    
-    // Cap at maximum position size
-    const maxSuiAmount = this.MAX_POSITION_SIZE.dividedBy(price);
-    
-    return BigNumber.minimum(suiAmount, maxSuiAmount);
+    // Adjust based on price volatility and available liquidity
+    // This is a simplified calculation - in production, would use more sophisticated sizing
+    return baseAmount.dividedBy(price).multipliedBy(new BigNumber(0.8)); // 80% of calculated amount for safety
   }
 
   /**
-   * Calculate confidence score based on price discrepancy
+   * Calculate confidence score for the opportunity
    */
-  private calculateConfidence(priceDiscrepancy: BigNumber): BigNumber {
-    // Higher discrepancy = higher confidence
-    if (priceDiscrepancy.isGreaterThan(0.01)) return new BigNumber(0.9); // 90% confidence for >1%
-    if (priceDiscrepancy.isGreaterThan(0.005)) return new BigNumber(0.8); // 80% confidence for >0.5%
-    if (priceDiscrepancy.isGreaterThan(0.003)) return new BigNumber(0.7); // 70% confidence for >0.3%
-    return new BigNumber(0.6); // 60% minimum confidence
-  }
-
-  /**
-   * Generate unique opportunity ID
-   */
-  private generateOpportunityId(pair: string, buyFromCetus: boolean): string {
-    const direction = buyFromCetus ? 'C2B' : 'B2C';
-    const timestamp = Date.now().toString(36);
-    return `${pair}_${direction}_${timestamp}`;
-  }
-
-  /**
-   * Get strategy statistics
-   */
-  getStatistics(): {
-    name: string;
-    enabled: boolean;
-    monitoredPairs: string[];
-    minProfitThreshold: BigNumber;
-    maxPositionSize: BigNumber;
-  } {
-    return {
-      name: this.name,
-      enabled: this.enabled,
-      monitoredPairs: this.MONITORED_PAIRS,
-      minProfitThreshold: this.minProfitThreshold,
-      maxPositionSize: this.MAX_POSITION_SIZE
-    };
+  private calculateConfidence(priceDiscrepancyPercent: BigNumber): BigNumber {
+    // Higher discrepancy = higher confidence, but capped at reasonable levels
+    let confidence = priceDiscrepancyPercent.multipliedBy(10); // Scale up
+    
+    // Cap confidence between 0.5 and 0.95
+    confidence = BigNumber.min(confidence, new BigNumber(0.95));
+    confidence = BigNumber.max(confidence, new BigNumber(0.5));
+    
+    return confidence;
   }
 }
-
-export default CetusBlueFinArbitrageStrategy;

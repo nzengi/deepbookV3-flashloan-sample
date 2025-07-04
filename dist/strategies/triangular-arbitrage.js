@@ -126,13 +126,19 @@ class TriangularArbitrageStrategy {
         const opportunity = {
             id: this.generateOpportunityId(path),
             type: 'triangular',
+            strategy: 'Triangular Arbitrage',
+            asset: assets[0],
+            amount: optimalResult.amount,
             pools: pairs,
             path: assets,
             expectedProfit: optimalResult.profit,
             profitPercentage: result.profitPercentage,
             tradeAmount: optimalResult.amount,
             gasEstimate,
+            estimatedGas: gasEstimate,
             confidence: new bignumber_js_1.default(this.calculateConfidence(pairs, result.profitPercentage)),
+            maxSlippage: new bignumber_js_1.default(0.02),
+            deadline: Date.now() + 30000,
             timestamp: Date.now()
         };
         logger_1.Logger.arbitrage('Triangular arbitrage opportunity found', {
