@@ -47,10 +47,18 @@ class RiskManagementService {
                 };
             }
             const profitPercentage = opportunity.profitPercentage || new bignumber_js_1.default(0);
-            if (profitPercentage.isLessThan(this.riskLimits.maxSlippage)) {
+            const slippageTolerance = this.riskLimits.maxSlippage || new bignumber_js_1.default(0.005);
+            const minRequiredProfit = slippageTolerance.plus(new bignumber_js_1.default(0.001));
+            if (profitPercentage.isLessThan(minRequiredProfit)) {
+                logger_1.Logger.risk('Opportunity rejected: profit below required threshold', {
+                    opportunityId: opportunity.id,
+                    profitPercentage: profitPercentage.toString(),
+                    slippageTolerance: slippageTolerance.toString(),
+                    minRequiredProfit: minRequiredProfit.toString()
+                });
                 return {
                     approved: false,
-                    reason: 'Profit margin below slippage tolerance'
+                    reason: `Profit ${profitPercentage.multipliedBy(100).toFixed(2)}% below required threshold ${minRequiredProfit.multipliedBy(100).toFixed(2)}%`
                 };
             }
             const newExposure = this.currentExposure.plus(tradeAmount);

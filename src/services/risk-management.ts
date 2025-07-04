@@ -75,12 +75,23 @@ export class RiskManagementService {
         };
       }
 
-      // 4. Check slippage tolerance
+      // 4. Check slippage tolerance - profit should be greater than slippage
       const profitPercentage = opportunity.profitPercentage || new BigNumber(0);
-      if (profitPercentage.isLessThan(this.riskLimits.maxSlippage)) {
+      const slippageTolerance = this.riskLimits.maxSlippage || new BigNumber(0.005);
+      
+      // For flash loans, we need profit > slippage + gas costs
+      const minRequiredProfit = slippageTolerance.plus(new BigNumber(0.001)); // Add 0.1% buffer for gas
+      
+      if (profitPercentage.isLessThan(minRequiredProfit)) {
+        Logger.risk('Opportunity rejected: profit below required threshold', {
+          opportunityId: opportunity.id,
+          profitPercentage: profitPercentage.toString(),
+          slippageTolerance: slippageTolerance.toString(),
+          minRequiredProfit: minRequiredProfit.toString()
+        });
         return {
           approved: false,
-          reason: 'Profit margin below slippage tolerance'
+          reason: `Profit ${profitPercentage.multipliedBy(100).toFixed(2)}% below required threshold ${minRequiredProfit.multipliedBy(100).toFixed(2)}%`
         };
       }
 

@@ -105,7 +105,9 @@ export class RealArbitrageService {
           strategy: `${dex1} vs ${dex2} Arbitrage`,
           asset: 'SUI',
           amount: tradeSize,
+          tradeAmount: tradeSize,
           expectedProfit: expectedProfit,
+          profitPercentage: discrepancy, // This is the key field for risk management
           confidence: this.calculateConfidence(discrepancy),
           estimatedGas: new BigNumber(0.05),
           maxSlippage: new BigNumber(0.02),
