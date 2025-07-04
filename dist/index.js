@@ -33,7 +33,10 @@ class ArbitrageBotApp {
             this.setupGracefulShutdown();
         }
         catch (error) {
-            logger_1.default.error('Uygulama başlatma hatası:', { error });
+            logger_1.default.error('Uygulama başlatma hatası:', {
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined
+            });
             process.exit(1);
         }
     }

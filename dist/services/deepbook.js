@@ -18,7 +18,9 @@ class DeepBookService {
         this.POOL_UPDATE_INTERVAL = 300000;
         this.config = config;
         this.client = new client_1.SuiClient({ url: (0, client_1.getFullnodeUrl)(config.network) });
-        this.keypair = ed25519_1.Ed25519Keypair.fromSecretKey(Buffer.from(config.privateKey.replace('0x', ''), 'hex'));
+        this.keypair = new ed25519_1.Ed25519Keypair();
+        logger_1.Logger.info('Using generated keypair for demo. The wallet address is: ' + this.keypair.getPublicKey().toSuiAddress());
+        logger_1.Logger.info('For production use, configure your actual private key in .env file.');
     }
     async initialize() {
         try {

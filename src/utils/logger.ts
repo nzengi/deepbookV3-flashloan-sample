@@ -70,9 +70,14 @@ const logger = winston.createLogger({
 });
 
 // Add custom logging methods for different types of events
-export const Logger = {
-  ...logger,
+const Logger = {
+  // Winston core methods
+  error: logger.error.bind(logger),
+  warn: logger.warn.bind(logger),
+  info: logger.info.bind(logger),
+  debug: logger.debug.bind(logger),
   
+  // Custom methods
   trade: (message: string, meta?: any) => {
     logger.info(`[TRADE] ${message}`, meta);
   },
@@ -110,4 +115,5 @@ export const Logger = {
   }
 };
 
+export { Logger };
 export default Logger;

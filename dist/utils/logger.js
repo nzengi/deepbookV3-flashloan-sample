@@ -51,8 +51,11 @@ const logger = winston_1.default.createLogger({
         })
     ]
 });
-exports.Logger = {
-    ...logger,
+const Logger = {
+    error: logger.error.bind(logger),
+    warn: logger.warn.bind(logger),
+    info: logger.info.bind(logger),
+    debug: logger.debug.bind(logger),
     trade: (message, meta) => {
         logger.info(`[TRADE] ${message}`, meta);
     },
@@ -81,5 +84,6 @@ exports.Logger = {
         logger.warn(`[SECURITY] ${message}`, meta);
     }
 };
-exports.default = exports.Logger;
+exports.Logger = Logger;
+exports.default = Logger;
 //# sourceMappingURL=logger.js.map

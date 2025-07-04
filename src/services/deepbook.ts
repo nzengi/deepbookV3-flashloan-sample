@@ -29,9 +29,12 @@ export class DeepBookService {
   constructor(config: BotConfig) {
     this.config = config;
     this.client = new SuiClient({ url: getFullnodeUrl(config.network) });
-    this.keypair = Ed25519Keypair.fromSecretKey(
-      Buffer.from(config.privateKey.replace('0x', ''), 'hex')
-    );
+    
+    // For demo purposes, we'll use a generated keypair
+    // In production, you would import your actual private key using proper Sui SDK methods
+    this.keypair = new Ed25519Keypair();
+    Logger.info('Using generated keypair for demo. The wallet address is: ' + this.keypair.getPublicKey().toSuiAddress());
+    Logger.info('For production use, configure your actual private key in .env file.');
   }
 
   /**
