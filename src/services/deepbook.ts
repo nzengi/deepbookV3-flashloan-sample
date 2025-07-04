@@ -152,40 +152,36 @@ export class DeepBookService {
    */
   async loadMarketSummary(): Promise<void> {
     try {
-      // DeepBook /summary endpoint has 502 errors, use /assets to get available trading pairs
+      // Use /ticker endpoint instead of broken /summary endpoint
       const response = await axios.get(
-        `${this.config.deepbookIndexerUrl}/assets`
+        `${this.config.deepbookIndexerUrl}/ticker`
       );
-      const assets = response.data;
+      const tickerData = response.data;
 
-      // Initialize price tracking for major trading pairs based on available assets
       this.prices.clear();
       
-      const majorPairs = [
-        'DEEP_SUI', 'DEEP_USDC', 'SUI_USDC', 
-        'WETH_USDC', 'WBTC_USDC', 'NS_SUI', 'TYPUS_SUI'
-      ];
-
-      for (const pair of majorPairs) {
-        const [base, quote] = pair.split('_');
-        if (assets[base] && assets[quote]) {
-          // Initialize placeholder - will be updated by real-time price calls
+      // Convert ticker data to our price format
+      for (const [pairName, data] of Object.entries(tickerData)) {
+        const tickerInfo = data as any;
+        
+        // Only process active pools
+        if (tickerInfo.isFrozen === 0 && tickerInfo.last_price > 0) {
           const price: Price = {
-            price: new BigNumber(1),
+            price: new BigNumber(tickerInfo.last_price),
             timestamp: Date.now(),
-            volume24h: new BigNumber(0),
-            change24h: new BigNumber(0),
-            bid: new BigNumber(0),
-            ask: new BigNumber(0),
+            volume24h: new BigNumber(tickerInfo.base_volume),
+            change24h: new BigNumber(0), // Not available in ticker endpoint
+            bid: new BigNumber(0), // Not available in ticker endpoint
+            ask: new BigNumber(0), // Not available in ticker endpoint
           };
-          this.prices.set(pair, price);
+          this.prices.set(pairName, price);
         }
       }
 
-      Logger.info(`Initialized price tracking for ${this.prices.size} trading pairs from ${Object.keys(assets).length} available assets`);
+      Logger.info(`Loaded real-time price data for ${this.prices.size} active trading pairs from DeepBook v3 ticker`);
     } catch (error) {
-      Logger.error("Failed to load market data", { error });
-      throw new Error(`Failed to load market data: ${error}`);
+      Logger.error("Failed to load ticker data", { error });
+      throw new Error(`Failed to load ticker data: ${error}`);
     }
   }
 

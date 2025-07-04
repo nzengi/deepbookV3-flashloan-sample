@@ -105,32 +105,28 @@ class DeepBookService {
     }
     async loadMarketSummary() {
         try {
-            const response = await axios_1.default.get(`${this.config.deepbookIndexerUrl}/assets`);
-            const assets = response.data;
+            const response = await axios_1.default.get(`${this.config.deepbookIndexerUrl}/ticker`);
+            const tickerData = response.data;
             this.prices.clear();
-            const majorPairs = [
-                'DEEP_SUI', 'DEEP_USDC', 'SUI_USDC',
-                'WETH_USDC', 'WBTC_USDC', 'NS_SUI', 'TYPUS_SUI'
-            ];
-            for (const pair of majorPairs) {
-                const [base, quote] = pair.split('_');
-                if (assets[base] && assets[quote]) {
+            for (const [pairName, data] of Object.entries(tickerData)) {
+                const tickerInfo = data;
+                if (tickerInfo.isFrozen === 0 && tickerInfo.last_price > 0) {
                     const price = {
-                        price: new bignumber_js_1.default(1),
+                        price: new bignumber_js_1.default(tickerInfo.last_price),
                         timestamp: Date.now(),
-                        volume24h: new bignumber_js_1.default(0),
+                        volume24h: new bignumber_js_1.default(tickerInfo.base_volume),
                         change24h: new bignumber_js_1.default(0),
                         bid: new bignumber_js_1.default(0),
                         ask: new bignumber_js_1.default(0),
                     };
-                    this.prices.set(pair, price);
+                    this.prices.set(pairName, price);
                 }
             }
-            logger_1.Logger.info(`Initialized price tracking for ${this.prices.size} trading pairs from ${Object.keys(assets).length} available assets`);
+            logger_1.Logger.info(`Loaded real-time price data for ${this.prices.size} active trading pairs from DeepBook v3 ticker`);
         }
         catch (error) {
-            logger_1.Logger.error("Failed to load market data", { error });
-            throw new Error(`Failed to load market data: ${error}`);
+            logger_1.Logger.error("Failed to load ticker data", { error });
+            throw new Error(`Failed to load ticker data: ${error}`);
         }
     }
     getTradingPair(symbol) {
