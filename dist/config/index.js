@@ -17,7 +17,7 @@ const createConfig = () => {
     const riskLimits = {
         maxPositionSize: new bignumber_js_1.default(process.env.MAX_POSITION_SIZE || "5000000000"),
         maxDailyLoss: new bignumber_js_1.default(process.env.MAX_DAILY_LOSS || "5000000000"),
-        maxSlippage: new bignumber_js_1.default(process.env.MAX_SLIPPAGE || "0.005"),
+        maxSlippage: new bignumber_js_1.default(process.env.MAX_SLIPPAGE || "0.01"),
         stopLossPercentage: new bignumber_js_1.default(process.env.STOP_LOSS_PERCENTAGE || "0.01"),
         maxConcurrentTrades: parseInt(process.env.MAX_CONCURRENT_TRADES || "1"),
     };

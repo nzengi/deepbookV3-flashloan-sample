@@ -19,7 +19,7 @@ export const createConfig = (): BotConfig => {
       process.env.MAX_POSITION_SIZE || "5000000000"
     ), // 5 SUI - test amount for flash loan
     maxDailyLoss: new BigNumber(process.env.MAX_DAILY_LOSS || "5000000000"), // 5 SUI - test limit
-    maxSlippage: new BigNumber(process.env.MAX_SLIPPAGE || "0.005"), // 0.5% - relaxed for test
+    maxSlippage: new BigNumber(process.env.MAX_SLIPPAGE || "0.01"), // 1% - optimal for mainnet
     stopLossPercentage: new BigNumber(
       process.env.STOP_LOSS_PERCENTAGE || "0.01"
     ), // 1% - test stop loss
