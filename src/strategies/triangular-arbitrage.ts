@@ -211,13 +211,19 @@ export class TriangularArbitrageStrategy implements ArbitrageStrategy {
     const opportunity: FlashLoanOpportunity = {
       id: this.generateOpportunityId(path),
       type: 'triangular',
+      strategy: 'Triangular Arbitrage',
+      asset: assets[0],
+      amount: optimalResult.amount,
       pools: pairs,
       path: assets,
       expectedProfit: optimalResult.profit,
       profitPercentage: result.profitPercentage,
       tradeAmount: optimalResult.amount,
       gasEstimate,
-      confidence: this.calculateConfidence(pairs, result.profitPercentage),
+      estimatedGas: gasEstimate,
+      confidence: new BigNumber(this.calculateConfidence(pairs, result.profitPercentage)),
+      maxSlippage: new BigNumber(0.02),
+      deadline: Date.now() + 30000,
       timestamp: Date.now()
     };
 

@@ -164,13 +164,14 @@ export class CetusBlueFinArbitrageStrategy implements ArbitrageStrategy {
         pair: pair,
         strategy: this.name,
         flashLoanAmount: tradeSize,
-        flashLoanAsset: 'USDC',
+        // flashLoanAsset: 'USDC', // Removed - not in interface
         expectedProfit: netProfit,
         confidence: this.calculateConfidence(priceDiscrepancy),
         estimatedGas: gasCost,
         maxSlippage: this.maxSlippage,
         deadline: Date.now() + 30000, // 30 seconds
-        executionSteps: [
+        metadata: {
+          executionSteps: JSON.stringify([
           {
             action: 'flashloan_borrow',
             dex: 'deepbook',

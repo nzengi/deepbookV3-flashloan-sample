@@ -132,7 +132,7 @@ class TriangularArbitrageStrategy {
             profitPercentage: result.profitPercentage,
             tradeAmount: optimalResult.amount,
             gasEstimate,
-            confidence: this.calculateConfidence(pairs, result.profitPercentage),
+            confidence: new bignumber_js_1.default(this.calculateConfidence(pairs, result.profitPercentage)),
             timestamp: Date.now()
         };
         logger_1.Logger.arbitrage('Triangular arbitrage opportunity found', {
