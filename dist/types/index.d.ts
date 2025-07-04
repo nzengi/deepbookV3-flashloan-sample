@@ -1,5 +1,5 @@
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import BigNumber from 'bignumber.js';
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import BigNumber from "bignumber.js";
 export interface TradingPair {
     base: string;
     quote: string;
@@ -31,7 +31,7 @@ export interface OrderBook {
 }
 export interface FlashLoanOpportunity {
     id: string;
-    type: 'triangular' | 'cross-dex' | 'liquidation';
+    type: "triangular" | "cross-dex" | "liquidation";
     pools: TradingPair[];
     path: string[];
     expectedProfit: BigNumber;
@@ -61,7 +61,7 @@ export interface ArbitrageStrategy {
     minProfitThreshold: BigNumber;
     maxSlippage: BigNumber;
     priority: number;
-    riskLevel: 'low' | 'medium' | 'high';
+    riskLevel: "low" | "medium" | "high";
     execute(opportunity: FlashLoanOpportunity): Promise<FlashLoanResult>;
 }
 export interface TriangularArbitrageParams {
@@ -89,13 +89,13 @@ export interface RiskMetrics {
     winRate: number;
     maxDrawdown: BigNumber;
     sharpeRatio: number;
-    currentRisk: 'low' | 'medium' | 'high';
+    currentRisk: "low" | "medium" | "high";
 }
 export interface ExternalPrice {
     symbol: string;
     price: BigNumber;
     timestamp: number;
-    source: 'binance' | 'coinbase' | 'kraken' | 'okx';
+    source: "binance" | "coinbase" | "kraken" | "okx";
     volume24h: BigNumber;
 }
 export interface MarketData {
@@ -105,8 +105,9 @@ export interface MarketData {
     lastUpdate: number;
 }
 export interface BotConfig {
-    network: 'mainnet' | 'testnet';
+    network: "mainnet" | "testnet";
     suiRpcUrl: string;
+    suiWsUrl: string;
     privateKey: string;
     walletAddress: string;
     deepbookPackageId: string;
@@ -140,8 +141,8 @@ export interface TradeLog {
     id: string;
     timestamp: number;
     strategy: string;
-    type: 'flash-loan' | 'arbitrage' | 'liquidation';
-    status: 'pending' | 'success' | 'failed';
+    type: "flash-loan" | "arbitrage" | "liquidation";
+    status: "pending" | "success" | "failed";
     txHash?: string;
     profit?: BigNumber;
     gasCost?: BigNumber;
@@ -160,7 +161,7 @@ export interface SystemMetrics {
     cpuUsage: number;
 }
 export interface WebSocketMessage {
-    type: 'price-update' | 'opportunity' | 'trade-result' | 'system-status';
+    type: "price-update" | "opportunity" | "trade-result" | "system-status";
     data: any;
     timestamp: number;
 }

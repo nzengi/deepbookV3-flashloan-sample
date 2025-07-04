@@ -1,5 +1,6 @@
-import BigNumber from 'bignumber.js';
-import { BotConfig, SystemMetrics } from '../types/index';
+import BigNumber from "bignumber.js";
+import { BotConfig, SystemMetrics } from "../types/index";
+import DeepBookService from "./deepbook";
 export declare class ArbitrageBotService {
     private config;
     private deepBookService;
@@ -37,11 +38,12 @@ export declare class ArbitrageBotService {
         };
         lastScan: number;
     };
-    updateStrategy(strategy: 'triangular' | 'crossDex', settings: {
+    updateStrategy(strategy: "triangular" | "crossDex", settings: {
         enabled?: boolean;
         minProfitThreshold?: BigNumber;
         maxSlippage?: BigNumber;
     }): void;
+    getDeepBookService(): DeepBookService;
 }
 export default ArbitrageBotService;
 //# sourceMappingURL=arbitrage-bot.d.ts.map

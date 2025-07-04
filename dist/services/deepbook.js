@@ -7,6 +7,7 @@ exports.DeepBookService = void 0;
 const client_1 = require("@mysten/sui.js/client");
 const transactions_1 = require("@mysten/sui.js/transactions");
 const ed25519_1 = require("@mysten/sui.js/keypairs/ed25519");
+const utils_1 = require("@mysten/sui.js/utils");
 const bignumber_js_1 = __importDefault(require("bignumber.js"));
 const axios_1 = __importDefault(require("axios"));
 const logger_1 = require("../utils/logger");
@@ -18,19 +19,69 @@ class DeepBookService {
         this.POOL_UPDATE_INTERVAL = 300000;
         this.config = config;
         this.client = new client_1.SuiClient({ url: (0, client_1.getFullnodeUrl)(config.network) });
-        this.keypair = new ed25519_1.Ed25519Keypair();
-        logger_1.Logger.info('Using generated keypair for demo. The wallet address is: ' + this.keypair.getPublicKey().toSuiAddress());
-        logger_1.Logger.info('For production use, configure your actual private key in .env file.');
+        try {
+            if (config.privateKey && config.privateKey.startsWith("suiprivkey")) {
+                const privateKeyBase64 = config.privateKey.replace("suiprivkey", "");
+                logger_1.Logger.info("Processing Sui private key format...");
+                try {
+                    const decodedKey = (0, utils_1.fromB64)(privateKeyBase64);
+                    const secretKey = decodedKey.length > 32 ? decodedKey.slice(0, 32) : decodedKey;
+                    logger_1.Logger.info(`Decoded key length: ${decodedKey.length}, using: ${secretKey.length} bytes`);
+                    this.keypair = ed25519_1.Ed25519Keypair.fromSecretKey(secretKey);
+                    logger_1.Logger.info("Using configured private key. Wallet address: " +
+                        this.keypair.getPublicKey().toSuiAddress());
+                }
+                catch (decodeError) {
+                    logger_1.Logger.error("Failed to decode private key from base64", {
+                        error: decodeError,
+                        privateKeyLength: privateKeyBase64.length,
+                    });
+                    throw decodeError;
+                }
+            }
+            else if (config.privateKey) {
+                logger_1.Logger.info("Processing base64/hex private key format...");
+                try {
+                    const secretKey = (0, utils_1.fromB64)(config.privateKey);
+                    this.keypair = ed25519_1.Ed25519Keypair.fromSecretKey(secretKey);
+                    logger_1.Logger.info("Using configured private key. Wallet address: " +
+                        this.keypair.getPublicKey().toSuiAddress());
+                }
+                catch (decodeError) {
+                    logger_1.Logger.error("Failed to decode private key", {
+                        error: decodeError,
+                        privateKeyLength: config.privateKey.length,
+                    });
+                    throw decodeError;
+                }
+            }
+            else {
+                this.keypair = new ed25519_1.Ed25519Keypair();
+                logger_1.Logger.warn("No private key provided, using demo keypair. Wallet address: " +
+                    this.keypair.getPublicKey().toSuiAddress());
+                logger_1.Logger.warn("For production use, configure your actual private key in .env file.");
+            }
+        }
+        catch (error) {
+            logger_1.Logger.error("Failed to initialize keypair from private key", {
+                error: error instanceof Error ? error.message : error,
+                privateKeyProvided: !!config.privateKey,
+                privateKeyLength: config.privateKey ? config.privateKey.length : 0,
+            });
+            this.keypair = new ed25519_1.Ed25519Keypair();
+            logger_1.Logger.warn("Using demo keypair due to private key error. Wallet address: " +
+                this.keypair.getPublicKey().toSuiAddress());
+        }
     }
     async initialize() {
         try {
-            logger_1.Logger.info('Initializing DeepBook service...');
+            logger_1.Logger.info("Initializing DeepBook service...");
             await this.loadPools();
             await this.loadMarketSummary();
-            logger_1.Logger.info('DeepBook service initialized successfully');
+            logger_1.Logger.info("DeepBook service initialized successfully");
         }
         catch (error) {
-            logger_1.Logger.error('Failed to initialize DeepBook service', { error });
+            logger_1.Logger.error("Failed to initialize DeepBook service", { error });
             throw error;
         }
     }
@@ -44,11 +95,11 @@ class DeepBookService {
             }
             this.lastPoolUpdate = Date.now();
             logger_1.Logger.info(`Loaded ${pools.length} trading pools`, {
-                pools: Array.from(this.pools.keys())
+                pools: Array.from(this.pools.keys()),
             });
         }
         catch (error) {
-            logger_1.Logger.error('Failed to load pools', { error });
+            logger_1.Logger.error("Failed to load pools", { error });
             throw new Error(`Failed to load pools: ${error}`);
         }
     }
@@ -64,14 +115,14 @@ class DeepBookService {
                     volume24h: new bignumber_js_1.default(summary.base_volume),
                     change24h: new bignumber_js_1.default(summary.price_change_percent_24h),
                     bid: new bignumber_js_1.default(summary.highest_bid),
-                    ask: new bignumber_js_1.default(summary.lowest_ask)
+                    ask: new bignumber_js_1.default(summary.lowest_ask),
                 };
                 this.prices.set(summary.trading_pairs, price);
             }
             logger_1.Logger.info(`Loaded market data for ${summaries.length} trading pairs`);
         }
         catch (error) {
-            logger_1.Logger.error('Failed to load market summary', { error });
+            logger_1.Logger.error("Failed to load market summary", { error });
             throw new Error(`Failed to load market summary: ${error}`);
         }
     }
@@ -88,14 +139,14 @@ class DeepBookService {
             quotePrecision: pool.quoteAssetDecimals,
             minTradeSize: new bignumber_js_1.default(pool.minSize),
             lotSize: new bignumber_js_1.default(pool.lotSize),
-            tickSize: new bignumber_js_1.default(pool.tickSize)
+            tickSize: new bignumber_js_1.default(pool.tickSize),
         };
     }
     getPrice(symbol) {
         return this.prices.get(symbol) || null;
     }
     getAllTradingPairs() {
-        return Array.from(this.pools.values()).map(pool => ({
+        return Array.from(this.pools.values()).map((pool) => ({
             base: pool.baseAssetSymbol,
             quote: pool.quoteAssetSymbol,
             symbol: pool.poolName,
@@ -104,18 +155,18 @@ class DeepBookService {
             quotePrecision: pool.quoteAssetDecimals,
             minTradeSize: new bignumber_js_1.default(pool.minSize),
             lotSize: new bignumber_js_1.default(pool.lotSize),
-            tickSize: new bignumber_js_1.default(pool.tickSize)
+            tickSize: new bignumber_js_1.default(pool.tickSize),
         }));
+    }
+    getAllPrices() {
+        return this.prices;
     }
     async createFlashLoanBase(poolId, amount) {
         const txBlock = new transactions_1.TransactionBlock();
         const [borrowCoin, flashLoan] = txBlock.moveCall({
             target: `${this.config.deepbookPackageId}::pool::borrow_flashloan_base`,
             typeArguments: [],
-            arguments: [
-                txBlock.object(poolId),
-                txBlock.pure(amount.toString()),
-            ]
+            arguments: [txBlock.object(poolId), txBlock.pure(amount.toString())],
         });
         return { txBlock, borrowCoin, flashLoan };
     }
@@ -124,10 +175,7 @@ class DeepBookService {
         const [borrowCoin, flashLoan] = txBlock.moveCall({
             target: `${this.config.deepbookPackageId}::pool::borrow_flashloan_quote`,
             typeArguments: [],
-            arguments: [
-                txBlock.object(poolId),
-                txBlock.pure(amount.toString()),
-            ]
+            arguments: [txBlock.object(poolId), txBlock.pure(amount.toString())],
         });
         return { txBlock, borrowCoin, flashLoan };
     }
@@ -135,32 +183,24 @@ class DeepBookService {
         txBlock.moveCall({
             target: `${this.config.deepbookPackageId}::pool::return_flashloan_base`,
             typeArguments: [],
-            arguments: [
-                txBlock.object(poolId),
-                coin,
-                flashLoan
-            ]
+            arguments: [txBlock.object(poolId), coin, flashLoan],
         });
     }
     async returnFlashLoanQuote(txBlock, poolId, coin, flashLoan) {
         txBlock.moveCall({
             target: `${this.config.deepbookPackageId}::pool::return_flashloan_quote`,
             typeArguments: [],
-            arguments: [
-                txBlock.object(poolId),
-                coin,
-                flashLoan
-            ]
+            arguments: [txBlock.object(poolId), coin, flashLoan],
         });
     }
     async executeFlashLoanArbitrage(opportunity) {
         const startTime = Date.now();
         try {
-            logger_1.Logger.flashloan('Executing flash loan arbitrage', {
+            logger_1.Logger.flashloan("Executing flash loan arbitrage", {
                 opportunityId: opportunity.id,
                 type: opportunity.type,
                 expectedProfit: opportunity.expectedProfit.toString(),
-                tradeAmount: opportunity.tradeAmount.toString()
+                tradeAmount: opportunity.tradeAmount.toString(),
             });
             const txBlock = await this.buildArbitrageTransaction(opportunity);
             txBlock.setGasBudget(this.config.gasBudget.toNumber());
@@ -171,61 +211,61 @@ class DeepBookService {
                     showEffects: true,
                     showEvents: true,
                     showObjectChanges: true,
-                }
+                },
             });
             const executionTime = Date.now() - startTime;
-            if (result.effects?.status?.status === 'success') {
+            if (result.effects?.status?.status === "success") {
                 const gasCost = new bignumber_js_1.default(result.effects.gasUsed.computationCost)
                     .plus(result.effects.gasUsed.storageCost)
                     .minus(result.effects.gasUsed.storageRebate);
                 const actualProfit = await this.calculateActualProfit(result, opportunity);
-                logger_1.Logger.profit('Flash loan arbitrage successful', {
+                logger_1.Logger.profit("Flash loan arbitrage successful", {
                     txHash: result.digest,
                     actualProfit: actualProfit.toString(),
                     gasCost: gasCost.toString(),
-                    executionTime
+                    executionTime,
                 });
                 return {
                     success: true,
                     txHash: result.digest,
                     actualProfit,
                     gasCost,
-                    executionTime
+                    executionTime,
                 };
             }
             else {
-                const error = result.effects?.status?.error || 'Transaction failed';
-                logger_1.Logger.error('Flash loan arbitrage failed', {
+                const error = result.effects?.status?.error || "Transaction failed";
+                logger_1.Logger.error("Flash loan arbitrage failed", {
                     error,
                     txHash: result.digest,
-                    executionTime
+                    executionTime,
                 });
                 return {
                     success: false,
                     error,
-                    executionTime
+                    executionTime,
                 };
             }
         }
         catch (error) {
             const executionTime = Date.now() - startTime;
-            logger_1.Logger.error('Flash loan arbitrage execution error', {
+            logger_1.Logger.error("Flash loan arbitrage execution error", {
                 error,
                 opportunityId: opportunity.id,
-                executionTime
+                executionTime,
             });
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Unknown error',
-                executionTime
+                error: error instanceof Error ? error.message : "Unknown error",
+                executionTime,
             };
         }
     }
     async buildArbitrageTransaction(opportunity) {
         switch (opportunity.type) {
-            case 'triangular':
+            case "triangular":
                 return this.buildTriangularArbitrageTransaction(opportunity);
-            case 'cross-dex':
+            case "cross-dex":
                 return this.buildCrossDexArbitrageTransaction(opportunity);
             default:
                 throw new Error(`Unsupported arbitrage type: ${opportunity.type}`);
@@ -234,7 +274,7 @@ class DeepBookService {
     async buildTriangularArbitrageTransaction(opportunity) {
         const txBlock = new transactions_1.TransactionBlock();
         if (opportunity.pools.length !== 3) {
-            throw new Error('Triangular arbitrage requires exactly 3 pools');
+            throw new Error("Triangular arbitrage requires exactly 3 pools");
         }
         const [pool1, pool2, pool3] = opportunity.pools;
         const { borrowCoin, flashLoan } = await this.createFlashLoanBase(pool1.poolId, opportunity.tradeAmount);
@@ -247,10 +287,46 @@ class DeepBookService {
     async buildCrossDexArbitrageTransaction(opportunity) {
         const txBlock = new transactions_1.TransactionBlock();
         if (opportunity.pools.length !== 2) {
-            throw new Error('Cross-DEX arbitrage requires exactly 2 pools');
+            throw new Error("Cross-DEX arbitrage requires exactly 2 pools");
         }
         const [buyPool, sellPool] = opportunity.pools;
         const { borrowCoin, flashLoan } = await this.createFlashLoanQuote(buyPool.poolId, opportunity.tradeAmount);
+        if (buyPool.symbol.includes("BLUEFIN")) {
+            txBlock.moveCall({
+                target: "0xBLUEFIN_PACKAGE::pool::swap",
+                typeArguments: ["0xUSDC", "0xSUI"],
+                arguments: [
+                    txBlock.object(buyPool.poolId),
+                    borrowCoin,
+                    txBlock.pure(opportunity.tradeAmount.toString()),
+                ],
+            });
+            txBlock.moveCall({
+                target: "0xCETUS_PACKAGE::pool::swap",
+                typeArguments: ["0xSUI", "0xUSDC"],
+                arguments: [
+                    txBlock.object(sellPool.poolId),
+                ],
+            });
+        }
+        else {
+            txBlock.moveCall({
+                target: "0xCETUS_PACKAGE::pool::swap",
+                typeArguments: ["0xUSDC", "0xSUI"],
+                arguments: [
+                    txBlock.object(buyPool.poolId),
+                    borrowCoin,
+                    txBlock.pure(opportunity.tradeAmount.toString()),
+                ],
+            });
+            txBlock.moveCall({
+                target: "0xBLUEFIN_PACKAGE::pool::swap",
+                typeArguments: ["0xSUI", "0xUSDC"],
+                arguments: [
+                    txBlock.object(sellPool.poolId),
+                ],
+            });
+        }
         await this.returnFlashLoanQuote(txBlock, buyPool.poolId, borrowCoin, flashLoan);
         return txBlock;
     }
@@ -261,14 +337,14 @@ class DeepBookService {
         try {
             const coins = await this.client.getCoins({
                 owner: this.config.walletAddress,
-                coinType: assetType
+                coinType: assetType,
             });
             return coins.data.reduce((total, coin) => {
                 return total.plus(new bignumber_js_1.default(coin.balance));
             }, new bignumber_js_1.default(0));
         }
         catch (error) {
-            logger_1.Logger.error('Failed to get balance', { assetType, error });
+            logger_1.Logger.error("Failed to get balance", { assetType, error });
             return new bignumber_js_1.default(0);
         }
     }
@@ -285,14 +361,14 @@ class DeepBookService {
         try {
             const params = new URLSearchParams();
             if (startTime)
-                params.append('start_time', startTime.toString());
+                params.append("start_time", startTime.toString());
             if (endTime)
-                params.append('end_time', endTime.toString());
+                params.append("end_time", endTime.toString());
             const response = await axios_1.default.get(`${this.config.deepbookIndexerUrl}/historical_volume/${poolName}?${params}`);
             return new bignumber_js_1.default(response.data[poolName] || 0);
         }
         catch (error) {
-            logger_1.Logger.error('Failed to get historical volume', { poolName, error });
+            logger_1.Logger.error("Failed to get historical volume", { poolName, error });
             return new bignumber_js_1.default(0);
         }
     }
@@ -300,9 +376,9 @@ class DeepBookService {
         try {
             const params = new URLSearchParams();
             if (startTime)
-                params.append('start_time', startTime.toString());
+                params.append("start_time", startTime.toString());
             if (endTime)
-                params.append('end_time', endTime.toString());
+                params.append("end_time", endTime.toString());
             const response = await axios_1.default.get(`${this.config.deepbookIndexerUrl}/all_historical_volume?${params}`);
             const volumes = new Map();
             for (const [poolName, volume] of Object.entries(response.data)) {
@@ -311,7 +387,7 @@ class DeepBookService {
             return volumes;
         }
         catch (error) {
-            logger_1.Logger.error('Failed to get all historical volumes', { error });
+            logger_1.Logger.error("Failed to get all historical volumes", { error });
             return new Map();
         }
     }

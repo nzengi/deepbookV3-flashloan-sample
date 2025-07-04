@@ -9,10 +9,10 @@ const logger_1 = require("../utils/logger");
 const math_1 = require("../utils/math");
 class CrossDexArbitrageStrategy {
     constructor(deepBookService, externalDataService, minProfitThreshold, maxSlippage) {
-        this.name = 'Cross-DEX Arbitrage';
+        this.name = "Cross-DEX Arbitrage";
         this.enabled = true;
         this.priority = 2;
-        this.riskLevel = 'low';
+        this.riskLevel = "low";
         this.monitoredPairs = [];
         this.deepBookService = deepBookService;
         this.externalDataService = externalDataService;
@@ -23,41 +23,17 @@ class CrossDexArbitrageStrategy {
     initializeMonitoredPairs() {
         const pairMappings = [
             {
-                deepbookSymbol: 'SUI_USDC',
-                externalSymbol: 'SUI/USDT',
-                baseAsset: 'SUI',
-                quoteAsset: 'USDC',
+                deepbookSymbol: "SUI_USDC",
+                externalSymbol: "SUI/USDT",
+                baseAsset: "SUI",
+                quoteAsset: "USDC",
                 conversionRequired: true,
-                priority: 10
+                priority: 10,
             },
-            {
-                deepbookSymbol: 'WETH_USDC',
-                externalSymbol: 'ETH/USDT',
-                baseAsset: 'WETH',
-                quoteAsset: 'USDC',
-                conversionRequired: true,
-                priority: 9
-            },
-            {
-                deepbookSymbol: 'WBTC_USDC',
-                externalSymbol: 'BTC/USDT',
-                baseAsset: 'WBTC',
-                quoteAsset: 'USDC',
-                conversionRequired: true,
-                priority: 9
-            },
-            {
-                deepbookSymbol: 'DEEP_USDC',
-                externalSymbol: null,
-                baseAsset: 'DEEP',
-                quoteAsset: 'USDC',
-                conversionRequired: false,
-                priority: 5
-            }
         ];
         this.monitoredPairs = pairMappings
-            .filter(mapping => mapping.externalSymbol !== null)
-            .map(mapping => ({
+            .filter((mapping) => mapping.externalSymbol !== null)
+            .map((mapping) => ({
             deepbookPair: this.deepBookService.getTradingPair(mapping.deepbookSymbol),
             externalSymbol: mapping.externalSymbol,
             baseAsset: mapping.baseAsset,
@@ -65,10 +41,10 @@ class CrossDexArbitrageStrategy {
             conversionRequired: mapping.conversionRequired,
             priority: mapping.priority,
             lastPriceCheck: 0,
-            priceDiscrepancy: new bignumber_js_1.default(0)
+            priceDiscrepancy: new bignumber_js_1.default(0),
         }))
-            .filter(pair => pair.deepbookPair !== null);
-        logger_1.Logger.info(`Initialized ${this.monitoredPairs.length} cross-DEX arbitrage pairs`);
+            .filter((pair) => pair.deepbookPair !== null);
+        logger_1.Logger.info(`Initialized SUI/USDC cross-DEX arbitrage pair only`);
     }
     async scanOpportunities() {
         const opportunities = [];
@@ -76,17 +52,20 @@ class CrossDexArbitrageStrategy {
             try {
                 const opportunity = await this.analyzeCrossDexPair(monitoredPair);
                 if (opportunity) {
-                    opportunities.push(opportunity);
+                    if (opportunity.expectedProfit &&
+                        opportunity.expectedProfit.isGreaterThanOrEqualTo(0.1)) {
+                        opportunities.push(opportunity);
+                    }
+                    else {
+                        logger_1.Logger.info(`Opportunity found but profit (${opportunity.expectedProfit.toFixed(4)}) < 0.10 USDC, skipping.`);
+                    }
                 }
             }
             catch (error) {
-                logger_1.Logger.error(`Error analyzing cross-DEX pair ${monitoredPair.externalSymbol}`, { error });
+                logger_1.Logger.error(`Error analyzing SUI/USDC cross-DEX pair`, { error });
             }
         }
-        opportunities.sort((a, b) => {
-            const result = b.profitPercentage.comparedTo(a.profitPercentage);
-            return result === null ? 0 : result;
-        });
+        opportunities.sort((a, b) => b.expectedProfit.minus(a.expectedProfit).toNumber());
         return opportunities;
     }
     async analyzeCrossDexPair(monitoredPair) {
@@ -99,20 +78,23 @@ class CrossDexArbitrageStrategy {
         }
         let effectiveExternalPrice = externalPrice.price;
         if (monitoredPair.conversionRequired) {
-            const conversionRate = await this.getConversionRate('USDT', 'USDC');
+            const conversionRate = await this.getConversionRate("USDT", "USDC");
             if (!conversionRate)
                 return null;
-            effectiveExternalPrice = effectiveExternalPrice.multipliedBy(conversionRate);
+            effectiveExternalPrice =
+                effectiveExternalPrice.multipliedBy(conversionRate);
         }
         const priceDifference = deepbookPrice.price.minus(effectiveExternalPrice);
-        const priceDiscrepancyPercent = priceDifference.dividedBy(effectiveExternalPrice).abs();
+        const priceDiscrepancyPercent = priceDifference
+            .dividedBy(effectiveExternalPrice)
+            .abs();
         monitoredPair.priceDiscrepancy = priceDiscrepancyPercent;
         monitoredPair.lastPriceCheck = Date.now();
         if (priceDiscrepancyPercent.isLessThan(this.minProfitThreshold)) {
             return null;
         }
         const shouldBuyOnDeepbook = deepbookPrice.price.isLessThan(effectiveExternalPrice);
-        const direction = shouldBuyOnDeepbook ? 'buy-deepbook' : 'sell-deepbook';
+        const direction = shouldBuyOnDeepbook ? "buy-deepbook" : "sell-deepbook";
         const optimalAmount = this.calculateOptimalTradeAmount(monitoredPair, deepbookPrice.price, effectiveExternalPrice, direction);
         if (optimalAmount.isLessThanOrEqualTo(0)) {
             return null;
@@ -124,7 +106,7 @@ class CrossDexArbitrageStrategy {
         }
         const opportunity = {
             id: this.generateOpportunityId(monitoredPair, direction),
-            type: 'cross-dex',
+            type: "cross-dex",
             pools: [monitoredPair.deepbookPair],
             path: [monitoredPair.baseAsset, monitoredPair.quoteAsset],
             expectedProfit,
@@ -132,16 +114,16 @@ class CrossDexArbitrageStrategy {
             tradeAmount: optimalAmount,
             gasEstimate,
             confidence: this.calculateConfidence(priceDiscrepancyPercent, externalPrice.volume24h),
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
-        logger_1.Logger.arbitrage('Cross-DEX arbitrage opportunity found', {
+        logger_1.Logger.arbitrage("Cross-DEX arbitrage opportunity found", {
             pair: monitoredPair.externalSymbol,
             direction,
             priceDiscrepancy: priceDiscrepancyPercent.toString(),
             expectedProfit: expectedProfit.toString(),
             tradeAmount: optimalAmount.toString(),
             deepbookPrice: deepbookPrice.price.toString(),
-            externalPrice: effectiveExternalPrice.toString()
+            externalPrice: effectiveExternalPrice.toString(),
         });
         return opportunity;
     }
@@ -166,7 +148,7 @@ class CrossDexArbitrageStrategy {
     }
     calculateExpectedProfit(amount, deepbookPrice, externalPrice, direction) {
         let profit;
-        if (direction === 'buy-deepbook') {
+        if (direction === "buy-deepbook") {
             const buyValue = amount.multipliedBy(deepbookPrice);
             const sellValue = amount.multipliedBy(externalPrice);
             profit = sellValue.minus(buyValue);
@@ -181,14 +163,18 @@ class CrossDexArbitrageStrategy {
     }
     async getConversionRate(fromAsset, toAsset) {
         try {
-            if ((fromAsset === 'USDT' && toAsset === 'USDC') ||
-                (fromAsset === 'USDC' && toAsset === 'USDT')) {
+            if ((fromAsset === "USDT" && toAsset === "USDC") ||
+                (fromAsset === "USDC" && toAsset === "USDT")) {
                 return new bignumber_js_1.default(1);
             }
             return new bignumber_js_1.default(1);
         }
         catch (error) {
-            logger_1.Logger.error('Error getting conversion rate', { fromAsset, toAsset, error });
+            logger_1.Logger.error("Error getting conversion rate", {
+                fromAsset,
+                toAsset,
+                error,
+            });
             return null;
         }
     }
@@ -204,42 +190,42 @@ class CrossDexArbitrageStrategy {
         return Math.min(confidence, 0.85);
     }
     generateOpportunityId(monitoredPair, direction) {
-        const pairStr = monitoredPair.externalSymbol.replace('/', '-');
+        const pairStr = monitoredPair.externalSymbol.replace("/", "-");
         const timestamp = Date.now();
         return `cross-dex-${pairStr}-${direction}-${timestamp}`;
     }
     async execute(opportunity) {
-        logger_1.Logger.arbitrage('Executing cross-DEX arbitrage', {
+        logger_1.Logger.arbitrage("Executing cross-DEX arbitrage", {
             opportunityId: opportunity.id,
-            expectedProfit: opportunity.expectedProfit.toString()
+            expectedProfit: opportunity.expectedProfit.toString(),
         });
         try {
             return await this.deepBookService.executeFlashLoanArbitrage(opportunity);
         }
         catch (error) {
-            logger_1.Logger.error('Cross-DEX arbitrage execution failed', {
+            logger_1.Logger.error("Cross-DEX arbitrage execution failed", {
                 opportunityId: opportunity.id,
-                error
+                error,
             });
             return {
                 success: false,
-                error: error instanceof Error ? error.message : 'Unknown error',
-                executionTime: 0
+                error: error instanceof Error ? error.message : "Unknown error",
+                executionTime: 0,
             };
         }
     }
     getStatistics() {
-        const activePairs = this.monitoredPairs.filter(pair => pair.priceDiscrepancy.isGreaterThan(0));
+        const activePairs = this.monitoredPairs.filter((pair) => pair.priceDiscrepancy.isGreaterThan(0));
         const totalDiscrepancy = this.monitoredPairs.reduce((sum, pair) => sum.plus(pair.priceDiscrepancy), new bignumber_js_1.default(0));
         const avgDiscrepancy = this.monitoredPairs.length > 0
             ? totalDiscrepancy.dividedBy(this.monitoredPairs.length)
             : new bignumber_js_1.default(0);
-        const lastUpdate = Math.max(...this.monitoredPairs.map(pair => pair.lastPriceCheck));
+        const lastUpdate = Math.max(...this.monitoredPairs.map((pair) => pair.lastPriceCheck));
         return {
             totalPairs: this.monitoredPairs.length,
             activePairs: activePairs.length,
             avgDiscrepancy,
-            lastUpdate
+            lastUpdate,
         };
     }
 }

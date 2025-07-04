@@ -1,6 +1,6 @@
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { SuiObjectRef } from '@mysten/sui.js/client';
-import BigNumber from 'bignumber.js';
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { SuiObjectRef } from "@mysten/sui.js/client";
+import BigNumber from "bignumber.js";
 
 // Core trading types
 export interface TradingPair {
@@ -39,7 +39,7 @@ export interface OrderBook {
 // Flash loan types
 export interface FlashLoanOpportunity {
   id: string;
-  type: 'triangular' | 'cross-dex' | 'liquidation';
+  type: "triangular" | "cross-dex" | "liquidation";
   pools: TradingPair[];
   path: string[];
   expectedProfit: BigNumber;
@@ -73,7 +73,7 @@ export interface ArbitrageStrategy {
   minProfitThreshold: BigNumber;
   maxSlippage: BigNumber;
   priority: number;
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: "low" | "medium" | "high";
   execute(opportunity: FlashLoanOpportunity): Promise<FlashLoanResult>;
 }
 
@@ -106,7 +106,7 @@ export interface RiskMetrics {
   winRate: number;
   maxDrawdown: BigNumber;
   sharpeRatio: number;
-  currentRisk: 'low' | 'medium' | 'high';
+  currentRisk: "low" | "medium" | "high";
 }
 
 // External data source types
@@ -114,7 +114,7 @@ export interface ExternalPrice {
   symbol: string;
   price: BigNumber;
   timestamp: number;
-  source: 'binance' | 'coinbase' | 'kraken' | 'okx';
+  source: "binance" | "coinbase" | "kraken" | "okx";
   volume24h: BigNumber;
 }
 
@@ -127,8 +127,9 @@ export interface MarketData {
 
 // Configuration types
 export interface BotConfig {
-  network: 'mainnet' | 'testnet';
+  network: "mainnet" | "testnet";
   suiRpcUrl: string;
+  suiWsUrl: string;
   privateKey: string;
   walletAddress: string;
   deepbookPackageId: string;
@@ -164,8 +165,8 @@ export interface TradeLog {
   id: string;
   timestamp: number;
   strategy: string;
-  type: 'flash-loan' | 'arbitrage' | 'liquidation';
-  status: 'pending' | 'success' | 'failed';
+  type: "flash-loan" | "arbitrage" | "liquidation";
+  status: "pending" | "success" | "failed";
   txHash?: string;
   profit?: BigNumber;
   gasCost?: BigNumber;
@@ -187,7 +188,7 @@ export interface SystemMetrics {
 
 // WebSocket types
 export interface WebSocketMessage {
-  type: 'price-update' | 'opportunity' | 'trade-result' | 'system-status';
+  type: "price-update" | "opportunity" | "trade-result" | "system-status";
   data: any;
   timestamp: number;
 }
@@ -232,34 +233,22 @@ export interface FlashLoanTransaction {
 
 // Error types
 export class ArbitrageError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public context?: any
-  ) {
+  constructor(message: string, public code: string, public context?: any) {
     super(message);
-    this.name = 'ArbitrageError';
+    this.name = "ArbitrageError";
   }
 }
 
 export class FlashLoanError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public context?: any
-  ) {
+  constructor(message: string, public code: string, public context?: any) {
     super(message);
-    this.name = 'FlashLoanError';
+    this.name = "FlashLoanError";
   }
 }
 
 export class RiskManagementError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public context?: any
-  ) {
+  constructor(message: string, public code: string, public context?: any) {
     super(message);
-    this.name = 'RiskManagementError';
+    this.name = "RiskManagementError";
   }
 }

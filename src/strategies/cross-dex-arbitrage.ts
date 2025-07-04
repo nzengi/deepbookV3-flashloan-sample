@@ -1,30 +1,30 @@
-import BigNumber from 'bignumber.js';
-import { Logger } from '../utils/logger';
-import { MathUtils } from '../utils/math';
-import { 
-  ArbitrageStrategy, 
-  FlashLoanOpportunity, 
+import BigNumber from "bignumber.js";
+import { Logger } from "../utils/logger";
+import { MathUtils } from "../utils/math";
+import {
+  ArbitrageStrategy,
+  FlashLoanOpportunity,
   FlashLoanResult,
   TradingPair,
   CrossDexArbitrageParams,
-  ExternalPrice
-} from '../types/index';
-import DeepBookService from '../services/deepbook';
-import ExternalDataService from '../services/external-data';
+  ExternalPrice,
+} from "../types/index";
+import DeepBookService from "../services/deepbook";
+import ExternalDataService from "../services/external-data";
 
 /**
  * Cross-DEX Arbitrage Strategy
- * 
+ *
  * This strategy identifies price discrepancies between DeepBook and external exchanges
  * (like Binance, Coinbase, etc.) and executes arbitrage trades
  */
 export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
-  public readonly name = 'Cross-DEX Arbitrage';
+  public readonly name = "Cross-DEX Arbitrage";
   public enabled = true;
   public minProfitThreshold: BigNumber;
   public maxSlippage: BigNumber;
   public priority = 2;
-  public riskLevel: 'low' | 'medium' | 'high' = 'low';
+  public riskLevel: "low" | "medium" | "high" = "low";
 
   private deepBookService: DeepBookService;
   private externalDataService: ExternalDataService;
@@ -47,57 +47,35 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
    * Initialize pairs to monitor for cross-DEX arbitrage
    */
   private initializeMonitoredPairs(): void {
-    // Define pairs that exist on both DeepBook and external exchanges
+    // Only monitor SUI/USDC for cross-DEX arbitrage
     const pairMappings = [
       {
-        deepbookSymbol: 'SUI_USDC',
-        externalSymbol: 'SUI/USDT', // Binance doesn't have SUI/USDC, use SUI/USDT
-        baseAsset: 'SUI',
-        quoteAsset: 'USDC',
+        deepbookSymbol: "SUI_USDC",
+        externalSymbol: "SUI/USDT", // Binance doesn't have SUI/USDC, use SUI/USDT
+        baseAsset: "SUI",
+        quoteAsset: "USDC",
         conversionRequired: true, // Need USDT -> USDC conversion
-        priority: 10
+        priority: 10,
       },
-      {
-        deepbookSymbol: 'WETH_USDC',
-        externalSymbol: 'ETH/USDT',
-        baseAsset: 'WETH',
-        quoteAsset: 'USDC',
-        conversionRequired: true,
-        priority: 9
-      },
-      {
-        deepbookSymbol: 'WBTC_USDC',
-        externalSymbol: 'BTC/USDT',
-        baseAsset: 'WBTC',
-        quoteAsset: 'USDC',
-        conversionRequired: true,
-        priority: 9
-      },
-      {
-        deepbookSymbol: 'DEEP_USDC',
-        externalSymbol: null, // DEEP is only on Sui ecosystem
-        baseAsset: 'DEEP',
-        quoteAsset: 'USDC',
-        conversionRequired: false,
-        priority: 5
-      }
     ];
 
     this.monitoredPairs = pairMappings
-      .filter(mapping => mapping.externalSymbol !== null)
-      .map(mapping => ({
-        deepbookPair: this.deepBookService.getTradingPair(mapping.deepbookSymbol),
+      .filter((mapping) => mapping.externalSymbol !== null)
+      .map((mapping) => ({
+        deepbookPair: this.deepBookService.getTradingPair(
+          mapping.deepbookSymbol
+        ),
         externalSymbol: mapping.externalSymbol!,
         baseAsset: mapping.baseAsset,
         quoteAsset: mapping.quoteAsset,
         conversionRequired: mapping.conversionRequired,
         priority: mapping.priority,
         lastPriceCheck: 0,
-        priceDiscrepancy: new BigNumber(0)
+        priceDiscrepancy: new BigNumber(0),
       }))
-      .filter(pair => pair.deepbookPair !== null) as MonitoredPair[];
+      .filter((pair) => pair.deepbookPair !== null) as MonitoredPair[];
 
-    Logger.info(`Initialized ${this.monitoredPairs.length} cross-DEX arbitrage pairs`);
+    Logger.info(`Initialized SUI/USDC cross-DEX arbitrage pair only`);
   }
 
   /**
@@ -105,36 +83,50 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
    */
   async scanOpportunities(): Promise<FlashLoanOpportunity[]> {
     const opportunities: FlashLoanOpportunity[] = [];
-    
     for (const monitoredPair of this.monitoredPairs) {
       try {
         const opportunity = await this.analyzeCrossDexPair(monitoredPair);
         if (opportunity) {
-          opportunities.push(opportunity);
+          // Only accept if expected profit > 0.10 USDC
+          if (
+            opportunity.expectedProfit &&
+            opportunity.expectedProfit.isGreaterThanOrEqualTo(0.1)
+          ) {
+            opportunities.push(opportunity);
+          } else {
+            Logger.info(
+              `Opportunity found but profit (${opportunity.expectedProfit.toFixed(
+                4
+              )}) < 0.10 USDC, skipping.`
+            );
+          }
         }
       } catch (error) {
-        Logger.error(`Error analyzing cross-DEX pair ${monitoredPair.externalSymbol}`, { error });
+        Logger.error(`Error analyzing SUI/USDC cross-DEX pair`, { error });
       }
     }
-    
-    // Sort by profit percentage (highest first)
-    opportunities.sort((a, b) => {
-      const result = b.profitPercentage.comparedTo(a.profitPercentage);
-      return result === null ? 0 : result;
-    });
-    
+    // Sort by profit (highest first)
+    opportunities.sort((a, b) =>
+      b.expectedProfit.minus(a.expectedProfit).toNumber()
+    );
     return opportunities;
   }
 
   /**
    * Analyze a specific pair for cross-DEX arbitrage opportunities
    */
-  private async analyzeCrossDexPair(monitoredPair: MonitoredPair): Promise<FlashLoanOpportunity | null> {
+  private async analyzeCrossDexPair(
+    monitoredPair: MonitoredPair
+  ): Promise<FlashLoanOpportunity | null> {
     if (!monitoredPair.deepbookPair) return null;
 
     // Get current prices from both sources
-    const deepbookPrice = this.deepBookService.getPrice(monitoredPair.deepbookPair.symbol);
-    const externalPrice = await this.externalDataService.getPrice(monitoredPair.externalSymbol);
+    const deepbookPrice = this.deepBookService.getPrice(
+      monitoredPair.deepbookPair.symbol
+    );
+    const externalPrice = await this.externalDataService.getPrice(
+      monitoredPair.externalSymbol
+    );
 
     if (!deepbookPrice || !externalPrice) {
       return null;
@@ -142,16 +134,19 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
 
     // Calculate price discrepancy
     let effectiveExternalPrice = externalPrice.price;
-    
+
     // Handle conversion if needed (e.g., USDT to USDC)
     if (monitoredPair.conversionRequired) {
-      const conversionRate = await this.getConversionRate('USDT', 'USDC');
+      const conversionRate = await this.getConversionRate("USDT", "USDC");
       if (!conversionRate) return null;
-      effectiveExternalPrice = effectiveExternalPrice.multipliedBy(conversionRate);
+      effectiveExternalPrice =
+        effectiveExternalPrice.multipliedBy(conversionRate);
     }
 
     const priceDifference = deepbookPrice.price.minus(effectiveExternalPrice);
-    const priceDiscrepancyPercent = priceDifference.dividedBy(effectiveExternalPrice).abs();
+    const priceDiscrepancyPercent = priceDifference
+      .dividedBy(effectiveExternalPrice)
+      .abs();
 
     // Update monitored pair data
     monitoredPair.priceDiscrepancy = priceDiscrepancyPercent;
@@ -163,8 +158,10 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
     }
 
     // Determine arbitrage direction
-    const shouldBuyOnDeepbook = deepbookPrice.price.isLessThan(effectiveExternalPrice);
-    const direction = shouldBuyOnDeepbook ? 'buy-deepbook' : 'sell-deepbook';
+    const shouldBuyOnDeepbook = deepbookPrice.price.isLessThan(
+      effectiveExternalPrice
+    );
+    const direction = shouldBuyOnDeepbook ? "buy-deepbook" : "sell-deepbook";
 
     // Calculate optimal trade amount
     const optimalAmount = this.calculateOptimalTradeAmount(
@@ -190,35 +187,40 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
     const gasEstimate = this.estimateGasCost();
 
     // Check if profitable after gas
-    if (!MathUtils.isProfitableAfterGas(
-      expectedProfit,
-      gasEstimate,
-      this.minProfitThreshold.multipliedBy(optimalAmount)
-    )) {
+    if (
+      !MathUtils.isProfitableAfterGas(
+        expectedProfit,
+        gasEstimate,
+        this.minProfitThreshold.multipliedBy(optimalAmount)
+      )
+    ) {
       return null;
     }
 
     const opportunity: FlashLoanOpportunity = {
       id: this.generateOpportunityId(monitoredPair, direction),
-      type: 'cross-dex',
+      type: "cross-dex",
       pools: [monitoredPair.deepbookPair],
       path: [monitoredPair.baseAsset, monitoredPair.quoteAsset],
       expectedProfit,
       profitPercentage: priceDiscrepancyPercent,
       tradeAmount: optimalAmount,
       gasEstimate,
-      confidence: this.calculateConfidence(priceDiscrepancyPercent, externalPrice.volume24h),
-      timestamp: Date.now()
+      confidence: this.calculateConfidence(
+        priceDiscrepancyPercent,
+        externalPrice.volume24h
+      ),
+      timestamp: Date.now(),
     };
 
-    Logger.arbitrage('Cross-DEX arbitrage opportunity found', {
+    Logger.arbitrage("Cross-DEX arbitrage opportunity found", {
       pair: monitoredPair.externalSymbol,
       direction,
       priceDiscrepancy: priceDiscrepancyPercent.toString(),
       expectedProfit: expectedProfit.toString(),
       tradeAmount: optimalAmount.toString(),
       deepbookPrice: deepbookPrice.price.toString(),
-      externalPrice: effectiveExternalPrice.toString()
+      externalPrice: effectiveExternalPrice.toString(),
     });
 
     return opportunity;
@@ -231,11 +233,11 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
     monitoredPair: MonitoredPair,
     deepbookPrice: BigNumber,
     externalPrice: BigNumber,
-    direction: 'buy-deepbook' | 'sell-deepbook'
+    direction: "buy-deepbook" | "sell-deepbook"
   ): BigNumber {
     // Get available liquidity
     const availableLiquidity = this.getAvailableLiquidity(monitoredPair);
-    
+
     // Calculate maximum profitable amount considering slippage
     const maxProfitableAmount = this.calculateMaxProfitableAmount(
       deepbookPrice,
@@ -253,7 +255,9 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
   private getAvailableLiquidity(monitoredPair: MonitoredPair): BigNumber {
     if (!monitoredPair.deepbookPair) return new BigNumber(0);
 
-    const price = this.deepBookService.getPrice(monitoredPair.deepbookPair.symbol);
+    const price = this.deepBookService.getPrice(
+      monitoredPair.deepbookPair.symbol
+    );
     if (!price) return new BigNumber(0);
 
     // Use 24h volume as a proxy for available liquidity
@@ -267,13 +271,13 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
   private calculateMaxProfitableAmount(
     deepbookPrice: BigNumber,
     externalPrice: BigNumber,
-    direction: 'buy-deepbook' | 'sell-deepbook'
+    direction: "buy-deepbook" | "sell-deepbook"
   ): BigNumber {
     // Simple model - in practice would need sophisticated slippage modeling
     const baseLiquidity = new BigNumber(10000000000); // 10 SUI equivalent
     const priceDiff = deepbookPrice.minus(externalPrice).abs();
     const relativeDiff = priceDiff.dividedBy(externalPrice);
-    
+
     // Higher price difference allows for larger trades
     return baseLiquidity.multipliedBy(relativeDiff.multipliedBy(100).plus(1));
   }
@@ -285,11 +289,11 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
     amount: BigNumber,
     deepbookPrice: BigNumber,
     externalPrice: BigNumber,
-    direction: 'buy-deepbook' | 'sell-deepbook'
+    direction: "buy-deepbook" | "sell-deepbook"
   ): BigNumber {
     let profit: BigNumber;
-    
-    if (direction === 'buy-deepbook') {
+
+    if (direction === "buy-deepbook") {
       // Buy on DeepBook (cheaper), sell externally (more expensive)
       const buyValue = amount.multipliedBy(deepbookPrice);
       const sellValue = amount.multipliedBy(externalPrice);
@@ -309,18 +313,27 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
   /**
    * Get conversion rate between two assets (e.g., USDT to USDC)
    */
-  private async getConversionRate(fromAsset: string, toAsset: string): Promise<BigNumber | null> {
+  private async getConversionRate(
+    fromAsset: string,
+    toAsset: string
+  ): Promise<BigNumber | null> {
     try {
       // For USDT to USDC, rate is approximately 1:1
-      if ((fromAsset === 'USDT' && toAsset === 'USDC') || 
-          (fromAsset === 'USDC' && toAsset === 'USDT')) {
+      if (
+        (fromAsset === "USDT" && toAsset === "USDC") ||
+        (fromAsset === "USDC" && toAsset === "USDT")
+      ) {
         return new BigNumber(1);
       }
 
       // For other conversions, would need to implement proper price feeds
       return new BigNumber(1);
     } catch (error) {
-      Logger.error('Error getting conversion rate', { fromAsset, toAsset, error });
+      Logger.error("Error getting conversion rate", {
+        fromAsset,
+        toAsset,
+        error,
+      });
       return null;
     }
   }
@@ -341,15 +354,15 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
     externalVolume: BigNumber
   ): number {
     let confidence = 0.3; // Base confidence (lower than triangular arbitrage)
-    
+
     // Higher price discrepancy = higher confidence
     const discrepancyBonus = Math.min(priceDiscrepancy.toNumber() * 20, 0.4);
     confidence += discrepancyBonus;
-    
+
     // Higher external volume = higher confidence
     const volumeBonus = Math.min(externalVolume.toNumber() / 1000000, 0.2);
     confidence += volumeBonus;
-    
+
     return Math.min(confidence, 0.85);
   }
 
@@ -360,7 +373,7 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
     monitoredPair: MonitoredPair,
     direction: string
   ): string {
-    const pairStr = monitoredPair.externalSymbol.replace('/', '-');
+    const pairStr = monitoredPair.externalSymbol.replace("/", "-");
     const timestamp = Date.now();
     return `cross-dex-${pairStr}-${direction}-${timestamp}`;
   }
@@ -369,9 +382,9 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
    * Execute cross-DEX arbitrage opportunity
    */
   async execute(opportunity: FlashLoanOpportunity): Promise<FlashLoanResult> {
-    Logger.arbitrage('Executing cross-DEX arbitrage', {
+    Logger.arbitrage("Executing cross-DEX arbitrage", {
       opportunityId: opportunity.id,
-      expectedProfit: opportunity.expectedProfit.toString()
+      expectedProfit: opportunity.expectedProfit.toString(),
     });
 
     try {
@@ -380,15 +393,15 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
       // For now, we'll use the DeepBook flash loan mechanism
       return await this.deepBookService.executeFlashLoanArbitrage(opportunity);
     } catch (error) {
-      Logger.error('Cross-DEX arbitrage execution failed', {
+      Logger.error("Cross-DEX arbitrage execution failed", {
         opportunityId: opportunity.id,
-        error
+        error,
       });
-      
+
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        executionTime: 0
+        error: error instanceof Error ? error.message : "Unknown error",
+        executionTime: 0,
       };
     }
   }
@@ -396,34 +409,35 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
   /**
    * Get monitored pairs statistics
    */
-  getStatistics(): { 
+  getStatistics(): {
     totalPairs: number;
     activePairs: number;
     avgDiscrepancy: BigNumber;
     lastUpdate: number;
   } {
-    const activePairs = this.monitoredPairs.filter(
-      pair => pair.priceDiscrepancy.isGreaterThan(0)
+    const activePairs = this.monitoredPairs.filter((pair) =>
+      pair.priceDiscrepancy.isGreaterThan(0)
     );
-    
+
     const totalDiscrepancy = this.monitoredPairs.reduce(
       (sum, pair) => sum.plus(pair.priceDiscrepancy),
       new BigNumber(0)
     );
-    
-    const avgDiscrepancy = this.monitoredPairs.length > 0
-      ? totalDiscrepancy.dividedBy(this.monitoredPairs.length)
-      : new BigNumber(0);
-    
+
+    const avgDiscrepancy =
+      this.monitoredPairs.length > 0
+        ? totalDiscrepancy.dividedBy(this.monitoredPairs.length)
+        : new BigNumber(0);
+
     const lastUpdate = Math.max(
-      ...this.monitoredPairs.map(pair => pair.lastPriceCheck)
+      ...this.monitoredPairs.map((pair) => pair.lastPriceCheck)
     );
 
     return {
       totalPairs: this.monitoredPairs.length,
       activePairs: activePairs.length,
       avgDiscrepancy,
-      lastUpdate
+      lastUpdate,
     };
   }
 }

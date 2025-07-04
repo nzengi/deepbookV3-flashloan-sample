@@ -6,7 +6,7 @@ class ArbitrageError extends Error {
         super(message);
         this.code = code;
         this.context = context;
-        this.name = 'ArbitrageError';
+        this.name = "ArbitrageError";
     }
 }
 exports.ArbitrageError = ArbitrageError;
@@ -15,7 +15,7 @@ class FlashLoanError extends Error {
         super(message);
         this.code = code;
         this.context = context;
-        this.name = 'FlashLoanError';
+        this.name = "FlashLoanError";
     }
 }
 exports.FlashLoanError = FlashLoanError;
@@ -24,7 +24,7 @@ class RiskManagementError extends Error {
         super(message);
         this.code = code;
         this.context = context;
-        this.name = 'RiskManagementError';
+        this.name = "RiskManagementError";
     }
 }
 exports.RiskManagementError = RiskManagementError;

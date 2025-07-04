@@ -1,5 +1,5 @@
-import { BotConfig, WebSocketMessage } from '../types/index';
-import ArbitrageBotService from '../services/arbitrage-bot';
+import { BotConfig, WebSocketMessage } from "../types/index";
+import ArbitrageBotService from "../services/arbitrage-bot";
 export declare class DashboardServer {
     private app;
     private server;

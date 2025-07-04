@@ -1,16 +1,21 @@
-import BigNumber from 'bignumber.js';
-import cron from 'node-cron';
-import { Logger } from '../utils/logger';
-import { BotConfig, FlashLoanOpportunity, TradeLog, SystemMetrics } from '../types/index';
-import DeepBookService from './deepbook';
-import ExternalDataService from './external-data';
-import RiskManagementService from './risk-management';
-import TriangularArbitrageStrategy from '../strategies/triangular-arbitrage';
-import CrossDexArbitrageStrategy from '../strategies/cross-dex-arbitrage';
+import BigNumber from "bignumber.js";
+import cron from "node-cron";
+import { Logger } from "../utils/logger";
+import {
+  BotConfig,
+  FlashLoanOpportunity,
+  TradeLog,
+  SystemMetrics,
+} from "../types/index";
+import DeepBookService from "./deepbook";
+import ExternalDataService from "./external-data";
+import RiskManagementService from "./risk-management";
+import TriangularArbitrageStrategy from "../strategies/triangular-arbitrage";
+import CrossDexArbitrageStrategy from "../strategies/cross-dex-arbitrage";
 
 /**
  * Main Arbitrage Bot Service
- * 
+ *
  * Orchestrates all arbitrage strategies and manages the trading lifecycle
  */
 export class ArbitrageBotService {
@@ -20,7 +25,7 @@ export class ArbitrageBotService {
   private riskManagementService: RiskManagementService;
   private triangularStrategy: TriangularArbitrageStrategy;
   private crossDexStrategy: CrossDexArbitrageStrategy;
-  
+
   private isRunning: boolean = false;
   private startTime: number = 0;
   private totalTrades: number = 0;
@@ -34,19 +39,19 @@ export class ArbitrageBotService {
 
   constructor(config: BotConfig) {
     this.config = config;
-    
+
     // Initialize services
     this.deepBookService = new DeepBookService(config);
     this.externalDataService = new ExternalDataService(config);
     this.riskManagementService = new RiskManagementService(config);
-    
+
     // Initialize strategies
     this.triangularStrategy = new TriangularArbitrageStrategy(
       this.deepBookService,
       config.minProfitThreshold,
       config.maxSlippage
     );
-    
+
     this.crossDexStrategy = new CrossDexArbitrageStrategy(
       this.deepBookService,
       this.externalDataService,
@@ -60,32 +65,31 @@ export class ArbitrageBotService {
    */
   async start(): Promise<void> {
     if (this.isRunning) {
-      Logger.warn('Bot is already running');
+      Logger.warn("Bot is already running");
       return;
     }
 
     try {
-      Logger.info('Starting DeepBook Arbitrage Bot...');
-      
+      Logger.info("Starting DeepBook Arbitrage Bot...");
+
       // Initialize services
       await this.deepBookService.initialize();
-      
+
       this.isRunning = true;
       this.startTime = Date.now();
-      
+
       // Start opportunity scanning
       this.startOpportunityScanning();
-      
+
       // Start monitoring
       this.startMonitoring();
-      
+
       // Setup cron jobs for periodic tasks
       this.setupCronJobs();
-      
-      Logger.info('Arbitrage bot started successfully');
-      
+
+      Logger.info("Arbitrage bot started successfully");
     } catch (error) {
-      Logger.error('Failed to start arbitrage bot', { error });
+      Logger.error("Failed to start arbitrage bot", { error });
       this.isRunning = false;
       throw error;
     }
@@ -95,20 +99,20 @@ export class ArbitrageBotService {
    * Stop the arbitrage bot
    */
   async stop(): Promise<void> {
-    Logger.info('Stopping arbitrage bot...');
-    
+    Logger.info("Stopping arbitrage bot...");
+
     this.isRunning = false;
-    
+
     // Clear intervals
     if (this.scanInterval) {
       clearInterval(this.scanInterval);
     }
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
     }
-    
-    Logger.info('Arbitrage bot stopped');
+
+    Logger.info("Arbitrage bot stopped");
   }
 
   /**
@@ -119,7 +123,7 @@ export class ArbitrageBotService {
       try {
         await this.scanAndExecuteOpportunities();
       } catch (error) {
-        Logger.error('Error in opportunity scanning', { error });
+        Logger.error("Error in opportunity scanning", { error });
       }
     }, 2000); // Scan every 2 seconds
   }
@@ -132,7 +136,7 @@ export class ArbitrageBotService {
       try {
         this.logSystemStatus();
       } catch (error) {
-        Logger.error('Error in system monitoring', { error });
+        Logger.error("Error in system monitoring", { error });
       }
     }, 30000); // Monitor every 30 seconds
   }
@@ -142,29 +146,29 @@ export class ArbitrageBotService {
    */
   private setupCronJobs(): void {
     // Refresh market data every minute
-    cron.schedule('* * * * *', async () => {
+    cron.schedule("* * * * *", async () => {
       try {
         await this.deepBookService.refreshData();
       } catch (error) {
-        Logger.error('Error refreshing market data', { error });
+        Logger.error("Error refreshing market data", { error });
       }
     });
 
     // Clean up and log summary every hour
-    cron.schedule('0 * * * *', () => {
+    cron.schedule("0 * * * *", () => {
       try {
         this.logHourlySummary();
       } catch (error) {
-        Logger.error('Error in hourly summary', { error });
+        Logger.error("Error in hourly summary", { error });
       }
     });
 
     // Risk assessment every 5 minutes
-    cron.schedule('*/5 * * * *', () => {
+    cron.schedule("*/5 * * * *", () => {
       try {
         this.performRiskAssessment();
       } catch (error) {
-        Logger.error('Error in risk assessment', { error });
+        Logger.error("Error in risk assessment", { error });
       }
     });
   }
@@ -177,7 +181,7 @@ export class ArbitrageBotService {
 
     // Check emergency shutdown conditions
     if (this.riskManagementService.shouldEmergencyShutdown()) {
-      Logger.security('Emergency shutdown initiated by risk management');
+      Logger.security("Emergency shutdown initiated by risk management");
       await this.stop();
       return;
     }
@@ -185,22 +189,28 @@ export class ArbitrageBotService {
     const opportunities: FlashLoanOpportunity[] = [];
 
     // Scan triangular arbitrage opportunities
-    if (this.config.strategies.triangularArbitrage && this.triangularStrategy.enabled) {
+    if (
+      this.config.strategies.triangularArbitrage &&
+      this.triangularStrategy.enabled
+    ) {
       try {
         const triangularOps = await this.triangularStrategy.scanOpportunities();
         opportunities.push(...triangularOps);
       } catch (error) {
-        Logger.error('Error scanning triangular arbitrage', { error });
+        Logger.error("Error scanning triangular arbitrage", { error });
       }
     }
 
     // Scan cross-DEX arbitrage opportunities
-    if (this.config.strategies.crossDexArbitrage && this.crossDexStrategy.enabled) {
+    if (
+      this.config.strategies.crossDexArbitrage &&
+      this.crossDexStrategy.enabled
+    ) {
       try {
         const crossDexOps = await this.crossDexStrategy.scanOpportunities();
         opportunities.push(...crossDexOps);
       } catch (error) {
-        Logger.error('Error scanning cross-DEX arbitrage', { error });
+        Logger.error("Error scanning cross-DEX arbitrage", { error });
       }
     }
 
@@ -220,13 +230,14 @@ export class ArbitrageBotService {
     Logger.info(`Found ${opportunities.length} arbitrage opportunities`);
 
     // Execute the best opportunities
-    for (const opportunity of opportunities.slice(0, 3)) { // Limit to top 3
+    for (const opportunity of opportunities.slice(0, 3)) {
+      // Limit to top 3
       try {
         await this.executeOpportunity(opportunity);
       } catch (error) {
-        Logger.error('Error executing opportunity', { 
-          opportunityId: opportunity.id, 
-          error 
+        Logger.error("Error executing opportunity", {
+          opportunityId: opportunity.id,
+          error,
         });
       }
     }
@@ -235,14 +246,18 @@ export class ArbitrageBotService {
   /**
    * Execute a single arbitrage opportunity
    */
-  private async executeOpportunity(opportunity: FlashLoanOpportunity): Promise<void> {
+  private async executeOpportunity(
+    opportunity: FlashLoanOpportunity
+  ): Promise<void> {
     // Risk evaluation
-    const riskEvaluation = await this.riskManagementService.evaluateOpportunity(opportunity);
-    
+    const riskEvaluation = await this.riskManagementService.evaluateOpportunity(
+      opportunity
+    );
+
     if (!riskEvaluation.approved) {
-      Logger.risk('Opportunity rejected by risk management', {
+      Logger.risk("Opportunity rejected by risk management", {
         opportunityId: opportunity.id,
-        reason: riskEvaluation.reason
+        reason: riskEvaluation.reason,
       });
       return;
     }
@@ -250,9 +265,9 @@ export class ArbitrageBotService {
     // Adjust amount if necessary
     if (riskEvaluation.adjustedAmount) {
       opportunity.tradeAmount = riskEvaluation.adjustedAmount;
-      Logger.info('Trade amount adjusted by risk management', {
+      Logger.info("Trade amount adjusted by risk management", {
         opportunityId: opportunity.id,
-        adjustedAmount: riskEvaluation.adjustedAmount.toString()
+        adjustedAmount: riskEvaluation.adjustedAmount.toString(),
       });
     }
 
@@ -261,8 +276,8 @@ export class ArbitrageBotService {
       id: `trade-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       timestamp: Date.now(),
       strategy: opportunity.type,
-      type: 'flash-loan',
-      status: 'pending'
+      type: "flash-loan",
+      status: "pending",
     };
 
     this.riskManagementService.recordTrade(tradeLog);
@@ -271,9 +286,9 @@ export class ArbitrageBotService {
     try {
       // Execute the opportunity
       const result = await this.executeStrategy(opportunity);
-      
+
       // Update trade log
-      tradeLog.status = result.success ? 'success' : 'failed';
+      tradeLog.status = result.success ? "success" : "failed";
       tradeLog.txHash = result.txHash;
       tradeLog.profit = result.actualProfit;
       tradeLog.gasCost = result.gasCost;
@@ -290,16 +305,16 @@ export class ArbitrageBotService {
         if (result.gasCost) {
           this.totalGasCost = this.totalGasCost.plus(result.gasCost);
         }
-        
-        Logger.profit('Arbitrage opportunity executed successfully', {
+
+        Logger.profit("Arbitrage opportunity executed successfully", {
           opportunityId: opportunity.id,
           profit: result.actualProfit?.toString(),
-          txHash: result.txHash
+          txHash: result.txHash,
         });
       } else {
-        Logger.error('Arbitrage opportunity execution failed', {
+        Logger.error("Arbitrage opportunity execution failed", {
           opportunityId: opportunity.id,
-          error: result.error
+          error: result.error,
         });
       }
 
@@ -307,15 +322,14 @@ export class ArbitrageBotService {
       if (this.executionTimes.length > 100) {
         this.executionTimes = this.executionTimes.slice(-50);
       }
-
     } catch (error) {
-      tradeLog.status = 'failed';
-      tradeLog.error = error instanceof Error ? error.message : 'Unknown error';
+      tradeLog.status = "failed";
+      tradeLog.error = error instanceof Error ? error.message : "Unknown error";
       this.riskManagementService.recordTrade(tradeLog);
-      
-      Logger.error('Unexpected error executing opportunity', {
+
+      Logger.error("Unexpected error executing opportunity", {
         opportunityId: opportunity.id,
-        error
+        error,
       });
     }
   }
@@ -325,9 +339,9 @@ export class ArbitrageBotService {
    */
   private async executeStrategy(opportunity: FlashLoanOpportunity) {
     switch (opportunity.type) {
-      case 'triangular':
+      case "triangular":
         return await this.triangularStrategy.execute(opportunity);
-      case 'cross-dex':
+      case "cross-dex":
         return await this.crossDexStrategy.execute(opportunity);
       default:
         throw new Error(`Unknown opportunity type: ${opportunity.type}`);
@@ -339,14 +353,14 @@ export class ArbitrageBotService {
    */
   private performRiskAssessment(): void {
     const riskSummary = this.riskManagementService.getRiskSummary();
-    
-    if (riskSummary.currentRisk === 'high') {
-      Logger.risk('High risk level detected', { riskSummary });
+
+    if (riskSummary.currentRisk === "high") {
+      Logger.risk("High risk level detected", { riskSummary });
     }
 
     if (riskSummary.recommendations.length > 0) {
-      Logger.risk('Risk management recommendations', {
-        recommendations: riskSummary.recommendations
+      Logger.risk("Risk management recommendations", {
+        recommendations: riskSummary.recommendations,
       });
     }
   }
@@ -356,13 +370,16 @@ export class ArbitrageBotService {
    */
   private logSystemStatus(): void {
     const metrics = this.getSystemMetrics();
-    
-    Logger.info('System Status', {
+
+    Logger.info("System Status", {
       uptime: metrics.uptime,
       totalTrades: metrics.totalTrades,
-      successRate: `${((metrics.successfulTrades / Math.max(metrics.totalTrades, 1)) * 100).toFixed(2)}%`,
+      successRate: `${(
+        (metrics.successfulTrades / Math.max(metrics.totalTrades, 1)) *
+        100
+      ).toFixed(2)}%`,
       totalProfit: metrics.totalProfit.toString(),
-      avgExecutionTime: `${metrics.avgExecutionTime.toFixed(0)}ms`
+      avgExecutionTime: `${metrics.avgExecutionTime.toFixed(0)}ms`,
     });
   }
 
@@ -372,15 +389,15 @@ export class ArbitrageBotService {
   private logHourlySummary(): void {
     const metrics = this.getSystemMetrics();
     const riskMetrics = this.riskManagementService.getRiskMetrics();
-    
-    Logger.info('Hourly Summary', {
+
+    Logger.info("Hourly Summary", {
       totalTrades: metrics.totalTrades,
       successfulTrades: metrics.successfulTrades,
       totalProfit: metrics.totalProfit.toString(),
       totalGasCost: metrics.totalGasCost.toString(),
       netProfit: metrics.totalProfit.minus(metrics.totalGasCost).toString(),
       winRate: riskMetrics.winRate,
-      currentRisk: riskMetrics.currentRisk
+      currentRisk: riskMetrics.currentRisk,
     });
   }
 
@@ -389,13 +406,16 @@ export class ArbitrageBotService {
    */
   getSystemMetrics(): SystemMetrics {
     const uptime = this.isRunning ? Date.now() - this.startTime : 0;
-    const avgExecutionTime = this.executionTimes.length > 0
-      ? this.executionTimes.reduce((sum, time) => sum + time, 0) / this.executionTimes.length
-      : 0;
+    const avgExecutionTime =
+      this.executionTimes.length > 0
+        ? this.executionTimes.reduce((sum, time) => sum + time, 0) /
+          this.executionTimes.length
+        : 0;
 
     // Get memory usage
     const memoryUsage = process.memoryUsage();
-    const memoryUsagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+    const memoryUsagePercent =
+      (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
 
     return {
       uptime,
@@ -406,7 +426,7 @@ export class ArbitrageBotService {
       avgExecutionTime,
       currentBalance: new BigNumber(0), // Would get from wallet
       memoryUsage: memoryUsagePercent,
-      cpuUsage: 0 // Would implement CPU monitoring
+      cpuUsage: 0, // Would implement CPU monitoring
     };
   }
 
@@ -424,9 +444,9 @@ export class ArbitrageBotService {
       uptime: this.isRunning ? Date.now() - this.startTime : 0,
       strategies: {
         triangularArbitrage: this.triangularStrategy.enabled,
-        crossDexArbitrage: this.crossDexStrategy.enabled
+        crossDexArbitrage: this.crossDexStrategy.enabled,
       },
-      lastScan: Date.now()
+      lastScan: Date.now(),
     };
   }
 
@@ -434,36 +454,49 @@ export class ArbitrageBotService {
    * Update strategy settings
    */
   updateStrategy(
-    strategy: 'triangular' | 'crossDex',
-    settings: { enabled?: boolean; minProfitThreshold?: BigNumber; maxSlippage?: BigNumber }
+    strategy: "triangular" | "crossDex",
+    settings: {
+      enabled?: boolean;
+      minProfitThreshold?: BigNumber;
+      maxSlippage?: BigNumber;
+    }
   ): void {
     switch (strategy) {
-      case 'triangular':
+      case "triangular":
         if (settings.enabled !== undefined) {
           this.triangularStrategy.enabled = settings.enabled;
         }
         if (settings.minProfitThreshold) {
-          this.triangularStrategy.minProfitThreshold = settings.minProfitThreshold;
+          this.triangularStrategy.minProfitThreshold =
+            settings.minProfitThreshold;
         }
         if (settings.maxSlippage) {
           this.triangularStrategy.maxSlippage = settings.maxSlippage;
         }
         break;
-      
-      case 'crossDex':
+
+      case "crossDex":
         if (settings.enabled !== undefined) {
           this.crossDexStrategy.enabled = settings.enabled;
         }
         if (settings.minProfitThreshold) {
-          this.crossDexStrategy.minProfitThreshold = settings.minProfitThreshold;
+          this.crossDexStrategy.minProfitThreshold =
+            settings.minProfitThreshold;
         }
         if (settings.maxSlippage) {
           this.crossDexStrategy.maxSlippage = settings.maxSlippage;
         }
         break;
     }
-    
-    Logger.info('Strategy settings updated', { strategy, settings });
+
+    Logger.info("Strategy settings updated", { strategy, settings });
+  }
+
+  /**
+   * Get DeepBook service instance for dashboard access
+   */
+  getDeepBookService(): DeepBookService {
+    return this.deepBookService;
   }
 }
 

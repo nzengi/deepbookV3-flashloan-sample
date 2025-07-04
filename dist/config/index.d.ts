@@ -1,4 +1,4 @@
-import { BotConfig } from '../types/index';
+import { BotConfig } from "../types/index";
 export declare const createConfig: () => BotConfig;
 export declare const ASSET_CONFIGS: {
     SUI: {

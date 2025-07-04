@@ -1,6 +1,6 @@
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import BigNumber from 'bignumber.js';
-import { BotConfig, TradingPair, FlashLoanOpportunity, FlashLoanResult, Price } from '../types/index';
+import { TransactionBlock } from "@mysten/sui.js/transactions";
+import BigNumber from "bignumber.js";
+import { BotConfig, TradingPair, FlashLoanOpportunity, FlashLoanResult, Price } from "../types/index";
 export declare class DeepBookService {
     private client;
     private keypair;
@@ -16,6 +16,7 @@ export declare class DeepBookService {
     getTradingPair(symbol: string): TradingPair | null;
     getPrice(symbol: string): Price | null;
     getAllTradingPairs(): TradingPair[];
+    getAllPrices(): Map<string, Price>;
     createFlashLoanBase(poolId: string, amount: BigNumber): Promise<{
         txBlock: TransactionBlock;
         borrowCoin: any;

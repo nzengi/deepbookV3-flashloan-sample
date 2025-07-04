@@ -1,14 +1,14 @@
-import BigNumber from 'bignumber.js';
-import { ArbitrageStrategy, FlashLoanOpportunity, FlashLoanResult } from '../types/index';
-import DeepBookService from '../services/deepbook';
-import ExternalDataService from '../services/external-data';
+import BigNumber from "bignumber.js";
+import { ArbitrageStrategy, FlashLoanOpportunity, FlashLoanResult } from "../types/index";
+import DeepBookService from "../services/deepbook";
+import ExternalDataService from "../services/external-data";
 export declare class CrossDexArbitrageStrategy implements ArbitrageStrategy {
     readonly name = "Cross-DEX Arbitrage";
     enabled: boolean;
     minProfitThreshold: BigNumber;
     maxSlippage: BigNumber;
     priority: number;
-    riskLevel: 'low' | 'medium' | 'high';
+    riskLevel: "low" | "medium" | "high";
     private deepBookService;
     private externalDataService;
     private monitoredPairs;
