@@ -115,6 +115,9 @@ export class ExternalDataService {
   private convertToBinanceSymbol(symbol: string): string | null {
     const symbolMap: { [key: string]: string } = {
       'SUI/USDT': 'SUIUSDT',
+      'SUIUSDT': 'SUIUSDT', // Direct format for easier mapping
+      'SUI/USDC': 'SUIUSDC',
+      'SUIUSDC': 'SUIUSDC', // Direct format
       'ETH/USDT': 'ETHUSDT',
       'BTC/USDT': 'BTCUSDT',
       'SOL/USDT': 'SOLUSDT',

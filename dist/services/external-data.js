@@ -80,6 +80,9 @@ class ExternalDataService {
     convertToBinanceSymbol(symbol) {
         const symbolMap = {
             'SUI/USDT': 'SUIUSDT',
+            'SUIUSDT': 'SUIUSDT',
+            'SUI/USDC': 'SUIUSDC',
+            'SUIUSDC': 'SUIUSDC',
             'ETH/USDT': 'ETHUSDT',
             'BTC/USDT': 'BTCUSDT',
             'SOL/USDT': 'SOLUSDT',

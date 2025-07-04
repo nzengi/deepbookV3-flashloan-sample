@@ -24,12 +24,20 @@ class CrossDexArbitrageStrategy {
         const pairMappings = [
             {
                 deepbookSymbol: "SUI_USDC",
-                externalSymbol: "SUI/USDT",
+                externalSymbol: "SUIUSDT",
                 baseAsset: "SUI",
                 quoteAsset: "USDC",
                 conversionRequired: true,
-                priority: 10,
+                priority: 1,
             },
+            {
+                deepbookSymbol: "SUI_USDC",
+                externalSymbol: "SUIUSDC",
+                baseAsset: "SUI",
+                quoteAsset: "USDC",
+                conversionRequired: false,
+                priority: 2,
+            }
         ];
         this.monitoredPairs = pairMappings
             .filter((mapping) => mapping.externalSymbol !== null)
@@ -44,7 +52,7 @@ class CrossDexArbitrageStrategy {
             priceDiscrepancy: new bignumber_js_1.default(0),
         }))
             .filter((pair) => pair.deepbookPair !== null);
-        logger_1.Logger.info(`Initialized SUI/USDC cross-DEX arbitrage pair only`);
+        logger_1.Logger.info(`Initialized ${this.monitoredPairs.length} SUI/USDC cross-DEX arbitrage pairs for profitable trading`);
     }
     async scanOpportunities() {
         const opportunities = [];
@@ -53,11 +61,16 @@ class CrossDexArbitrageStrategy {
                 const opportunity = await this.analyzeCrossDexPair(monitoredPair);
                 if (opportunity) {
                     if (opportunity.expectedProfit &&
-                        opportunity.expectedProfit.isGreaterThanOrEqualTo(0.1)) {
+                        opportunity.expectedProfit.isGreaterThanOrEqualTo(0.05)) {
                         opportunities.push(opportunity);
+                        logger_1.Logger.arbitrage(`Profitable SUI/USDC opportunity: ${opportunity.expectedProfit.toFixed(4)} USDC profit`, {
+                            strategy: 'cross-dex',
+                            pair: monitoredPair.baseAsset + '/' + monitoredPair.quoteAsset,
+                            type: opportunity.type
+                        });
                     }
-                    else {
-                        logger_1.Logger.info(`Opportunity found but profit (${opportunity.expectedProfit.toFixed(4)}) < 0.10 USDC, skipping.`);
+                    else if (opportunity.expectedProfit && opportunity.expectedProfit.isGreaterThan(0)) {
+                        logger_1.Logger.info(`Small opportunity found but profit (${opportunity.expectedProfit.toFixed(4)}) < 0.05 USDC minimum, monitoring for better conditions.`);
                     }
                 }
             }

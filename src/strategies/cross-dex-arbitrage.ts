@@ -47,16 +47,24 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
    * Initialize pairs to monitor for cross-DEX arbitrage
    */
   private initializeMonitoredPairs(): void {
-    // Only monitor SUI/USDC for cross-DEX arbitrage
+    // Focus on high-volume arbitrage opportunities with real profit potential
     const pairMappings = [
       {
         deepbookSymbol: "SUI_USDC",
-        externalSymbol: "SUI/USDT", // Binance doesn't have SUI/USDC, use SUI/USDT
+        externalSymbol: "SUIUSDT", // Binance high-volume pair
         baseAsset: "SUI",
         quoteAsset: "USDC",
-        conversionRequired: true, // Need USDT -> USDC conversion
-        priority: 10,
+        conversionRequired: true, // USDT -> USDC conversion (~1.000 ratio)
+        priority: 1, // Highest priority for proven arbitrage
       },
+      {
+        deepbookSymbol: "SUI_USDC", 
+        externalSymbol: "SUIUSDC", // Coinbase direct pair if available
+        baseAsset: "SUI",
+        quoteAsset: "USDC",
+        conversionRequired: false,
+        priority: 2,
+      }
     ];
 
     this.monitoredPairs = pairMappings
@@ -75,7 +83,7 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
       }))
       .filter((pair) => pair.deepbookPair !== null) as MonitoredPair[];
 
-    Logger.info(`Initialized SUI/USDC cross-DEX arbitrage pair only`);
+    Logger.info(`Initialized ${this.monitoredPairs.length} SUI/USDC cross-DEX arbitrage pairs for profitable trading`);
   }
 
   /**
@@ -90,14 +98,19 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
           // Only accept if expected profit > 0.10 USDC
           if (
             opportunity.expectedProfit &&
-            opportunity.expectedProfit.isGreaterThanOrEqualTo(0.1)
+            opportunity.expectedProfit.isGreaterThanOrEqualTo(0.05) // Lower threshold for v3.1 ultra-low fees
           ) {
             opportunities.push(opportunity);
-          } else {
+            Logger.arbitrage(`Profitable SUI/USDC opportunity: ${opportunity.expectedProfit.toFixed(4)} USDC profit`, {
+              strategy: 'cross-dex',
+              pair: monitoredPair.baseAsset + '/' + monitoredPair.quoteAsset,
+              type: opportunity.type
+            });
+          } else if (opportunity.expectedProfit && opportunity.expectedProfit.isGreaterThan(0)) {
             Logger.info(
-              `Opportunity found but profit (${opportunity.expectedProfit.toFixed(
+              `Small opportunity found but profit (${opportunity.expectedProfit.toFixed(
                 4
-              )}) < 0.10 USDC, skipping.`
+              )}) < 0.05 USDC minimum, monitoring for better conditions.`
             );
           }
         }

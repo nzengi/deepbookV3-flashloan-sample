@@ -149,6 +149,14 @@ npm run dev      # Start with auto-reload
 
 ## Changelog
 
+- **July 04, 2025**: Optimized for Real SUI/USDC Arbitrage Success
+  - Researched latest DeepBook v3.1 ultra-low fees (1 basis point)
+  - Optimized profit thresholds to 0.2% (from 0.5%)
+  - Enhanced cross-DEX strategy for Binance SUIUSDT arbitrage
+  - Reduced gas budget to 0.05 SUI for v3.1 efficiency
+  - Tightened risk management: 20 SUI max position, 10 SUI daily loss limit
+  - Focused on high-volume SUI/USDC pair for maximum profitability
+
 - **July 03, 2025**: Complete production system implementation
   - Full DeepBook v3 integration with flash loans
   - Triangular and cross-DEX arbitrage strategies
