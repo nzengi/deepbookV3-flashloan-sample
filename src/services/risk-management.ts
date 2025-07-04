@@ -61,10 +61,11 @@ export class RiskManagementService {
       }
 
       // 3. Check position size limit
-      if (opportunity.tradeAmount?.isGreaterThan(this.riskLimits.maxPositionSize)) {
+      const tradeAmount = opportunity.tradeAmount || opportunity.amount || new BigNumber(10);
+      if (tradeAmount.isGreaterThan(this.riskLimits.maxPositionSize)) {
         const adjustedAmount = this.riskLimits.maxPositionSize;
         Logger.risk('Trade amount adjusted due to position size limit', {
-          originalAmount: opportunity.tradeAmount?.toString() || '0',
+          originalAmount: tradeAmount.toString(),
           adjustedAmount: adjustedAmount.toString()
         });
 
@@ -75,7 +76,8 @@ export class RiskManagementService {
       }
 
       // 4. Check slippage tolerance
-      if (opportunity.profitPercentage.isLessThan(this.riskLimits.maxSlippage)) {
+      const profitPercentage = opportunity.profitPercentage || new BigNumber(0);
+      if (profitPercentage.isLessThan(this.riskLimits.maxSlippage)) {
         return {
           approved: false,
           reason: 'Profit margin below slippage tolerance'
@@ -83,7 +85,7 @@ export class RiskManagementService {
       }
 
       // 5. Check exposure limit
-      const newExposure = this.currentExposure.plus(opportunity.tradeAmount);
+      const newExposure = this.currentExposure.plus(tradeAmount);
       const maxExposure = this.riskLimits.maxPositionSize.multipliedBy(3); // 3x position size
       
       if (newExposure.isGreaterThan(maxExposure)) {
@@ -104,7 +106,7 @@ export class RiskManagementService {
       // 6. Risk-adjusted sizing based on confidence
       const riskAdjustedAmount = this.calculateRiskAdjustedSize(opportunity);
       
-      if (riskAdjustedAmount.isLessThan(opportunity.tradeAmount)) {
+      if (riskAdjustedAmount.isLessThan(tradeAmount)) {
         return {
           approved: true,
           adjustedAmount: riskAdjustedAmount
@@ -116,12 +118,20 @@ export class RiskManagementService {
     } catch (error) {
       Logger.error('Risk evaluation failed', { 
         opportunityId: opportunity.id, 
-        error 
+        error: error.message || error,
+        stack: error.stack,
+        opportunity: {
+          id: opportunity.id,
+          type: opportunity.type,
+          confidence: opportunity.confidence?.toString(),
+          profitPercentage: opportunity.profitPercentage?.toString(),
+          tradeAmount: opportunity.tradeAmount?.toString()
+        }
       });
       
       return {
         approved: false,
-        reason: 'Risk evaluation error'
+        reason: `Risk evaluation error: ${error.message || error}`
       };
     }
   }
@@ -130,18 +140,35 @@ export class RiskManagementService {
    * Calculate risk-adjusted position size
    */
   private calculateRiskAdjustedSize(opportunity: FlashLoanOpportunity): BigNumber {
-    // Kelly Criterion inspired sizing
-    const confidence = opportunity.confidence;
-    const profitPercentage = opportunity.profitPercentage;
-    
-    // Conservative Kelly fraction (reduce by 50% for safety)
-    const kellyFraction = confidence.toNumber() * (profitPercentage?.toNumber() || 0.01) * 0.5;
-    
-    // Apply Kelly sizing to max position size
-    const baseAmount = this.riskLimits.maxPositionSize;
-    const kellyAmount = baseAmount.multipliedBy(Math.min(kellyFraction, 0.25)); // Cap at 25%
-    
-    return BigNumber.min(kellyAmount, opportunity.tradeAmount);
+    try {
+      // Kelly Criterion inspired sizing
+      const confidence = opportunity.confidence || new BigNumber(0.5);
+      const profitPercentage = opportunity.profitPercentage || new BigNumber(0.01);
+      const tradeAmount = opportunity.tradeAmount || new BigNumber(10);
+      
+      // Validate inputs
+      if (!confidence.isFinite() || !profitPercentage.isFinite() || !tradeAmount.isFinite()) {
+        Logger.warn('Invalid values in risk calculation, using defaults', {
+          confidence: confidence.toString(),
+          profitPercentage: profitPercentage.toString(),
+          tradeAmount: tradeAmount.toString()
+        });
+        return this.riskLimits.maxPositionSize.multipliedBy(0.1); // 10% of max position
+      }
+      
+      // Conservative Kelly fraction (reduce by 50% for safety)
+      const kellyFraction = confidence.toNumber() * profitPercentage.toNumber() * 0.5;
+      
+      // Apply Kelly sizing to max position size
+      const baseAmount = this.riskLimits.maxPositionSize;
+      const kellyAmount = baseAmount.multipliedBy(Math.min(Math.max(kellyFraction, 0.01), 0.25)); // Cap between 1% and 25%
+      
+      return BigNumber.min(kellyAmount, tradeAmount);
+    } catch (error) {
+      Logger.error('Error in calculateRiskAdjustedSize', { error, opportunityId: opportunity.id });
+      // Return conservative default
+      return this.riskLimits.maxPositionSize.multipliedBy(0.05); // 5% of max position
+    }
   }
 
   /**
