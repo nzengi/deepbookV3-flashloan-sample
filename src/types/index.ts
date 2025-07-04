@@ -39,7 +39,7 @@ export interface OrderBook {
 // Flash loan types
 export interface FlashLoanOpportunity {
   id: string;
-  type: "triangular" | "cross-dex" | "liquidation";
+  type: "triangular" | "cross-dex" | "liquidation" | "cetus-bluefin-arbitrage";
   strategy: string;
   asset: string;
   amount: BigNumber;
@@ -55,6 +55,9 @@ export interface FlashLoanOpportunity {
   maxSlippage: BigNumber;
   deadline: number;
   metadata?: Record<string, string>;
+  // Legacy fields for backward compatibility
+  pair?: string;
+  flashLoanAmount?: BigNumber;
 }
 
 export interface FlashLoanExecution {

@@ -31,7 +31,7 @@ export interface OrderBook {
 }
 export interface FlashLoanOpportunity {
     id: string;
-    type: "triangular" | "cross-dex" | "liquidation";
+    type: "triangular" | "cross-dex" | "liquidation" | "cetus-bluefin-arbitrage";
     strategy: string;
     asset: string;
     amount: BigNumber;
@@ -47,6 +47,8 @@ export interface FlashLoanOpportunity {
     maxSlippage: BigNumber;
     deadline: number;
     metadata?: Record<string, string>;
+    pair?: string;
+    flashLoanAmount?: BigNumber;
 }
 export interface FlashLoanExecution {
     opportunity: FlashLoanOpportunity;
@@ -209,17 +211,17 @@ export interface FlashLoanTransaction {
 }
 export declare class ArbitrageError extends Error {
     code: string;
-    context?: any | undefined;
-    constructor(message: string, code: string, context?: any | undefined);
+    context?: any;
+    constructor(message: string, code: string, context?: any);
 }
 export declare class FlashLoanError extends Error {
     code: string;
-    context?: any | undefined;
-    constructor(message: string, code: string, context?: any | undefined);
+    context?: any;
+    constructor(message: string, code: string, context?: any);
 }
 export declare class RiskManagementError extends Error {
     code: string;
-    context?: any | undefined;
-    constructor(message: string, code: string, context?: any | undefined);
+    context?: any;
+    constructor(message: string, code: string, context?: any);
 }
 //# sourceMappingURL=index.d.ts.map

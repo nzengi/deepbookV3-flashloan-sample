@@ -152,22 +152,21 @@ export class SimpleArbitrageService {
       }
 
       // Try real Binance API first, fallback to estimation if blocked
+      let price: BigNumber;
       try {
         const response = await axios.get(
           `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`,
           { timeout: 5000 }
         );
-        const price = new BigNumber(response.data.price);
+        price = new BigNumber(response.data.price);
         Logger.external(`Real Binance ${symbol} price: $${price.toFixed(4)}`);
-        return price;
       } catch (error) {
         Logger.external(`Binance API blocked, using realistic estimation for ${symbol}`);
         // Use realistic market-based estimation
         const basePrice = 4.25; // Current SUI price in USD
         const variation = (Math.random() - 0.5) * 0.04; // ±2 cents variation
-        const price = new BigNumber(basePrice + variation);
+        price = new BigNumber(basePrice + variation);
         Logger.external(`Estimated ${symbol} price: $${price.toFixed(4)}`);
-        return price;
       }
 
       this.PRICE_CACHE.set(cacheKey, {
@@ -177,7 +176,6 @@ export class SimpleArbitrageService {
         timestamp: Date.now()
       });
 
-      Logger.external(`Binance ${symbol} price: $${price.toFixed(4)}`);
       return price;
     } catch (error) {
       Logger.error(`Failed to get Binance price for ${symbol}`, { error });

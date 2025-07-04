@@ -61,10 +61,10 @@ export class RiskManagementService {
       }
 
       // 3. Check position size limit
-      if (opportunity.tradeAmount.isGreaterThan(this.riskLimits.maxPositionSize)) {
+      if (opportunity.tradeAmount?.isGreaterThan(this.riskLimits.maxPositionSize)) {
         const adjustedAmount = this.riskLimits.maxPositionSize;
         Logger.risk('Trade amount adjusted due to position size limit', {
-          originalAmount: opportunity.tradeAmount.toString(),
+          originalAmount: opportunity.tradeAmount?.toString() || '0',
           adjustedAmount: adjustedAmount.toString()
         });
 
@@ -135,7 +135,7 @@ export class RiskManagementService {
     const profitPercentage = opportunity.profitPercentage;
     
     // Conservative Kelly fraction (reduce by 50% for safety)
-    const kellyFraction = confidence * profitPercentage.toNumber() * 0.5;
+    const kellyFraction = confidence.toNumber() * (profitPercentage?.toNumber() || 0.01) * 0.5;
     
     // Apply Kelly sizing to max position size
     const baseAmount = this.riskLimits.maxPositionSize;

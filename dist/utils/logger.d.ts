@@ -1,9 +1,8 @@
-import winston from 'winston';
 declare const Logger: {
-    error: winston.LeveledLogMethod;
-    warn: winston.LeveledLogMethod;
-    info: winston.LeveledLogMethod;
-    debug: winston.LeveledLogMethod;
+    error: any;
+    warn: any;
+    info: any;
+    debug: any;
     trade: (message: string, meta?: any) => void;
     arbitrage: (message: string, meta?: any) => void;
     flashloan: (message: string, meta?: any) => void;

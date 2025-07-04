@@ -34,10 +34,10 @@ class RiskManagementService {
                     reason: 'Daily loss limit exceeded'
                 };
             }
-            if (opportunity.tradeAmount.isGreaterThan(this.riskLimits.maxPositionSize)) {
+            if (opportunity.tradeAmount?.isGreaterThan(this.riskLimits.maxPositionSize)) {
                 const adjustedAmount = this.riskLimits.maxPositionSize;
                 logger_1.Logger.risk('Trade amount adjusted due to position size limit', {
-                    originalAmount: opportunity.tradeAmount.toString(),
+                    originalAmount: opportunity.tradeAmount?.toString() || '0',
                     adjustedAmount: adjustedAmount.toString()
                 });
                 return {

@@ -1,0 +1,198 @@
+~/workspace$  npm run build && npm run postbuild
+
+> workspace@1.0.0 build
+> tsc
+
+src/services/cetus-dex.ts:35:16 - error TS2304: Cannot find name 'CetusClmmSDK'.
+
+35   private sdk: CetusClmmSDK;
+                  ~~~~~~~~~~~~
+
+src/services/cetus-dex.ts:45:23 - error TS2304: Cannot find name 'SdkOptions'.
+
+45     const sdkOptions: SdkOptions = {
+                         ~~~~~~~~~~
+
+src/services/cetus-dex.ts:53:20 - error TS2304: Cannot find name 'CetusClmmSDK'.
+
+53     this.sdk = new CetusClmmSDK(sdkOptions);
+                      ~~~~~~~~~~~~
+
+src/services/deepbook.ts:315:22 - error TS18048: 'opportunity.tradeAmount' is possibly 'undefined'.
+
+315         tradeAmount: opportunity.tradeAmount.toString(),
+                         ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/deepbook.ts:415:9 - error TS18048: 'opportunity.pools' is possibly 'undefined'.
+
+415     if (opportunity.pools.length !== 3) {
+            ~~~~~~~~~~~~~~~~~
+
+src/services/deepbook.ts:419:11 - error TS2488: Type 'TradingPair[] | undefined' must have a '[Symbol.iterator]()' method that returns an iterator.
+
+419     const [pool1, pool2, pool3] = opportunity.pools;
+              ~~~~~~~~~~~~~~~~~~~~~
+
+src/services/deepbook.ts:424:7 - error TS2345: Argument of type 'BigNumber | undefined' is not assignable to parameter of type 'BigNumber'.
+  Type 'undefined' is not assignable to type 'BigNumber'.
+
+424       opportunity.tradeAmount
+          ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/deepbook.ts:458:9 - error TS18048: 'opportunity.pools' is possibly 'undefined'.
+
+458     if (opportunity.pools.length !== 2) {
+            ~~~~~~~~~~~~~~~~~
+
+src/services/deepbook.ts:467:7 - error TS2345: Argument of type 'BigNumber | undefined' is not assignable to parameter of type 'BigNumber'.
+  Type 'undefined' is not assignable to type 'BigNumber'.
+
+467       opportunity.tradeAmount
+          ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/deepbook.ts:494:24 - error TS18048: 'opportunity.tradeAmount' is possibly 'undefined'.
+
+494           txBlock.pure(opportunity.tradeAmount.toString()),
+                           ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/deepbook.ts:517:24 - error TS18048: 'opportunity.tradeAmount' is possibly 'undefined'.
+
+517           txBlock.pure(opportunity.tradeAmount.toString()),
+                           ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/risk-management.ts:64:11 - error TS18048: 'opportunity.tradeAmount' is possibly 'undefined'.
+
+64       if (opportunity.tradeAmount.isGreaterThan(this.riskLimits.maxPositionSize)) {
+             ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/risk-management.ts:67:27 - error TS18048: 'opportunity.tradeAmount' is possibly 'undefined'.
+
+67           originalAmount: opportunity.tradeAmount.toString(),
+                             ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/risk-management.ts:78:11 - error TS18048: 'opportunity.profitPercentage' is possibly 'undefined'.
+
+78       if (opportunity.profitPercentage.isLessThan(this.riskLimits.maxSlippage)) {
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/risk-management.ts:86:53 - error TS2345: Argument of type 'BigNumber | undefined' is not assignable to parameter of type 'Value'.
+  Type 'undefined' is not assignable to type 'Value'.
+
+86       const newExposure = this.currentExposure.plus(opportunity.tradeAmount);
+                                                       ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/risk-management.ts:107:41 - error TS2345: Argument of type 'BigNumber | undefined' is not assignable to parameter of type 'Value'.
+  Type 'undefined' is not assignable to type 'Value'.
+
+107       if (riskAdjustedAmount.isLessThan(opportunity.tradeAmount)) {
+                                            ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/risk-management.ts:138:27 - error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+
+138     const kellyFraction = confidence * profitPercentage.toNumber() * 0.5;
+                              ~~~~~~~~~~
+
+src/services/risk-management.ts:138:40 - error TS18048: 'profitPercentage' is possibly 'undefined'.
+
+138     const kellyFraction = confidence * profitPercentage.toNumber() * 0.5;
+                                           ~~~~~~~~~~~~~~~~
+
+src/services/risk-management.ts:144:39 - error TS2345: Argument of type 'BigNumber | undefined' is not assignable to parameter of type 'Value'.
+  Type 'undefined' is not assignable to type 'Value'.
+
+144     return BigNumber.min(kellyAmount, opportunity.tradeAmount);
+                                          ~~~~~~~~~~~~~~~~~~~~~~~
+
+src/services/simple-arbitrage.ts:176:9 - error TS18004: No value exists in scope for the shorthand property 'price'. Either declare one or provide an initializer.
+
+176         price,
+            ~~~~~
+
+src/services/simple-arbitrage.ts:180:52 - error TS2304: Cannot find name 'price'.
+
+180       Logger.external(`Binance ${symbol} price: $${price.toFixed(4)}`);
+                                                       ~~~~~
+
+src/services/simple-arbitrage.ts:181:14 - error TS2304: Cannot find name 'price'.
+
+181       return price;
+                 ~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:163:9 - error TS2322: Type '"cetus-bluefin-arbitrage"' is not assignable to type '"triangular" | "cross-dex" | "liquidation"'.
+
+163         type: 'cetus-bluefin-arbitrage',
+            ~~~~
+
+  src/types/index.ts:42:3
+    42   type: "triangular" | "cross-dex" | "liquidation";
+         ~~~~
+    The expected type comes from property 'type' which is declared here on type 'FlashLoanOpportunity'
+
+src/strategies/cetus-bluefin-arbitrage.ts:205:11 - error TS2322: Type 'boolean' is not assignable to type 'string'.
+
+205           buyFromCetus,
+              ~~~~~~~~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:224:74 - error TS2339: Property 'pair' does not exist on type 'FlashLoanOpportunity'.
+
+224       Logger.flashloan(`Executing Cetus-BlueFin arbitrage: ${opportunity.pair}`, {
+                                                                             ~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:225:29 - error TS2339: Property 'flashLoanAmount' does not exist on type 'FlashLoanOpportunity'.
+
+225         amount: opportunity.flashLoanAmount.toString(),
+                                ~~~~~~~~~~~~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:235:57 - error TS2339: Property 'pair' does not exist on type 'FlashLoanOpportunity'.
+
+235       Logger.profit(`Arbitrage completed: ${opportunity.pair}`, {
+                                                            ~~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:244:63 - error TS2339: Property 'pair' does not exist on type 'FlashLoanOpportunity'.
+
+244       Logger.error(`Arbitrage execution failed: ${opportunity.pair}`, { error });
+                                                                  ~~~~
+
+src/strategies/cross-dex-arbitrage.ts:213:11 - error TS2740: Type '{ id: string; type: "cross-dex"; pools: TradingPair[]; path: string[]; expectedProfit: BigNumber; profitPercentage: BigNumber; tradeAmount: BigNumber; gasEstimate: BigNumber; confidence: BigNumber; timestamp: number; }' is missing the following properties from type 'FlashLoanOpportunity': strategy, asset, amount, estimatedGas, and 2 more.
+
+213     const opportunity: FlashLoanOpportunity = {
+              ~~~~~~~~~~~
+
+src/strategies/triangular-arbitrage.ts:161:22 - error TS18048: 'b.profitPercentage' is possibly 'undefined'.
+
+161       const result = b.profitPercentage.comparedTo(a.profitPercentage);
+                         ~~~~~~~~~~~~~~~~~~
+
+src/strategies/triangular-arbitrage.ts:161:52 - error TS2345: Argument of type 'BigNumber | undefined' is not assignable to parameter of type 'Value'.
+  Type 'undefined' is not assignable to type 'Value'.
+
+161       const result = b.profitPercentage.comparedTo(a.profitPercentage);
+                                                       ~~~~~~~~~~~~~~~~~~
+
+src/strategies/triangular-arbitrage.ts:220:7 - error TS2322: Type 'number' is not assignable to type 'BigNumber'.
+
+220       confidence: this.calculateConfidence(pairs, result.profitPercentage),
+          ~~~~~~~~~~
+
+  src/types/index.ts:52:3
+    52   confidence: BigNumber;
+         ~~~~~~~~~~
+    The expected type comes from property 'confidence' which is declared here on type 'FlashLoanOpportunity'
+
+src/strategies/triangular-arbitrage.ts:353:13 - error TS18048: 'opportunity.path' is possibly 'undefined'.
+
+353       path: opportunity.path.join(' -> '),
+                ~~~~~~~~~~~~~~~~
+
+
+Found 33 errors in 7 files.
+
+Errors  Files
+     3  src/services/cetus-dex.ts:35
+     8  src/services/deepbook.ts:315
+     8  src/services/risk-management.ts:64
+     3  src/services/simple-arbitrage.ts:176
+     6  src/strategies/cetus-bluefin-arbitrage.ts:163
+     1  src/strategies/cross-dex-arbitrage.ts:213
+     4  src/strategies/triangular-arbitrage.ts:161
+~/workspace$ 
