@@ -6,6 +6,7 @@ export declare class ArbitrageBotService {
     private deepBookService;
     private externalDataService;
     private riskManagementService;
+    private realArbitrageService;
     private triangularStrategy;
     private crossDexStrategy;
     private isRunning;

@@ -126,7 +126,7 @@ class CrossDexArbitrageStrategy {
             profitPercentage: priceDiscrepancyPercent,
             tradeAmount: optimalAmount,
             gasEstimate,
-            confidence: this.calculateConfidence(priceDiscrepancyPercent, externalPrice.volume24h),
+            confidence: new bignumber_js_1.default(this.calculateConfidence(priceDiscrepancyPercent, externalPrice.volume24h)),
             timestamp: Date.now(),
         };
         logger_1.Logger.arbitrage("Cross-DEX arbitrage opportunity found", {

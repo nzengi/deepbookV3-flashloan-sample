@@ -219,10 +219,10 @@ export class CrossDexArbitrageStrategy implements ArbitrageStrategy {
       profitPercentage: priceDiscrepancyPercent,
       tradeAmount: optimalAmount,
       gasEstimate,
-      confidence: this.calculateConfidence(
+      confidence: new BigNumber(this.calculateConfidence(
         priceDiscrepancyPercent,
         externalPrice.volume24h
-      ),
+      )),
       timestamp: Date.now(),
     };
 

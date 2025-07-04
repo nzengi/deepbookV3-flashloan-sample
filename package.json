@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@cetusprotocol/cetus-sui-clmm-sdk": "^5.4.0",
     "@mysten/deepbook-v3": "^0.15.4",
     "@mysten/sui.js": "^0.54.1",
     "@types/cors": "^2.8.19",
@@ -28,6 +29,7 @@
     "node-cron": "^4.2.0",
     "nodemon": "^3.1.10",
     "socket.io": "^4.8.1",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "winston": "^3.17.0",
     "ws": "^8.18.3"

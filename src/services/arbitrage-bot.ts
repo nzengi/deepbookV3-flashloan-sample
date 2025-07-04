@@ -10,6 +10,7 @@ import {
 import DeepBookService from "./deepbook";
 import ExternalDataService from "./external-data";
 import RiskManagementService from "./risk-management";
+import RealArbitrageService from "./real-arbitrage";
 import TriangularArbitrageStrategy from "../strategies/triangular-arbitrage";
 import CrossDexArbitrageStrategy from "../strategies/cross-dex-arbitrage";
 
@@ -23,6 +24,7 @@ export class ArbitrageBotService {
   private deepBookService: DeepBookService;
   private externalDataService: ExternalDataService;
   private riskManagementService: RiskManagementService;
+  private realArbitrageService: RealArbitrageService;
   private triangularStrategy: TriangularArbitrageStrategy;
   private crossDexStrategy: CrossDexArbitrageStrategy;
 
@@ -44,6 +46,9 @@ export class ArbitrageBotService {
     this.deepBookService = new DeepBookService(config);
     this.externalDataService = new ExternalDataService(config);
     this.riskManagementService = new RiskManagementService(config);
+    
+    // Initialize real arbitrage service
+    this.realArbitrageService = new RealArbitrageService(config);
 
     // Initialize strategies
     this.triangularStrategy = new TriangularArbitrageStrategy(
@@ -74,6 +79,8 @@ export class ArbitrageBotService {
 
       // Initialize services
       await this.deepBookService.initialize();
+      
+      Logger.info("Real arbitrage service initialized");
 
       this.isRunning = true;
       this.startTime = Date.now();
@@ -188,6 +195,14 @@ export class ArbitrageBotService {
 
     const opportunities: FlashLoanOpportunity[] = [];
 
+    // Scan REAL arbitrage opportunities first (highest priority)
+    try {
+      const realArbitrageOps = await this.realArbitrageService.scanOpportunities();
+      opportunities.push(...realArbitrageOps);
+    } catch (error) {
+      Logger.error("Error scanning real arbitrage", { error });
+    }
+
     // Scan triangular arbitrage opportunities
     if (
       this.config.strategies.triangularArbitrage &&
@@ -220,11 +235,14 @@ export class ArbitrageBotService {
 
     // Sort by profit percentage and confidence
     opportunities.sort((a, b) => {
-      const profitDiff = b.profitPercentage.minus(a.profitPercentage);
+      const aProfitPct = a.profitPercentage || a.expectedProfit;
+      const bProfitPct = b.profitPercentage || b.expectedProfit;
+      
+      const profitDiff = bProfitPct.minus(aProfitPct);
       if (!profitDiff.isZero()) {
         return profitDiff.isPositive() ? 1 : -1;
       }
-      return b.confidence - a.confidence;
+      return b.confidence.minus(a.confidence).toNumber();
     });
 
     Logger.info(`Found ${opportunities.length} arbitrage opportunities`);
@@ -265,6 +283,7 @@ export class ArbitrageBotService {
     // Adjust amount if necessary
     if (riskEvaluation.adjustedAmount) {
       opportunity.tradeAmount = riskEvaluation.adjustedAmount;
+      opportunity.amount = riskEvaluation.adjustedAmount;
       Logger.info("Trade amount adjusted by risk management", {
         opportunityId: opportunity.id,
         adjustedAmount: riskEvaluation.adjustedAmount.toString(),
@@ -342,6 +361,10 @@ export class ArbitrageBotService {
       case "triangular":
         return await this.triangularStrategy.execute(opportunity);
       case "cross-dex":
+        // Check if this is a real arbitrage opportunity
+        if (opportunity.strategy === 'SUI Real Arbitrage') {
+          return await this.realArbitrageService.executeArbitrage(opportunity);
+        }
         return await this.crossDexStrategy.execute(opportunity);
       default:
         throw new Error(`Unknown opportunity type: ${opportunity.type}`);

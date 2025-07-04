@@ -40,14 +40,21 @@ export interface OrderBook {
 export interface FlashLoanOpportunity {
   id: string;
   type: "triangular" | "cross-dex" | "liquidation";
-  pools: TradingPair[];
-  path: string[];
+  strategy: string;
+  asset: string;
+  amount: BigNumber;
+  pools?: TradingPair[];
+  path?: string[];
   expectedProfit: BigNumber;
-  profitPercentage: BigNumber;
-  tradeAmount: BigNumber;
-  gasEstimate: BigNumber;
-  confidence: number;
-  timestamp: number;
+  profitPercentage?: BigNumber;
+  tradeAmount?: BigNumber;
+  gasEstimate?: BigNumber;
+  confidence: BigNumber;
+  timestamp?: number;
+  estimatedGas: BigNumber;
+  maxSlippage: BigNumber;
+  deadline: number;
+  metadata?: Record<string, string>;
 }
 
 export interface FlashLoanExecution {
@@ -62,6 +69,7 @@ export interface FlashLoanResult {
   txHash?: string;
   actualProfit?: BigNumber;
   gasCost?: BigNumber;
+  gasUsed?: BigNumber;
   error?: string;
   executionTime: number;
 }
