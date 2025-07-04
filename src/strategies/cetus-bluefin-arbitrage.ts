@@ -202,7 +202,7 @@ export class CetusBlueFinArbitrageStrategy implements ArbitrageStrategy {
           cetusPrice: cetusPrice.toString(),
           bluefinPrice: bluefinPrice.toString(),
           priceDiscrepancy: priceDiscrepancy.toString(),
-          buyFromCetus,
+          buyFromCetus: buyFromCetus.toString(),
           tradeDirection: buyFromCetus ? 'cetus->bluefin' : 'bluefin->cetus'
         }
       };

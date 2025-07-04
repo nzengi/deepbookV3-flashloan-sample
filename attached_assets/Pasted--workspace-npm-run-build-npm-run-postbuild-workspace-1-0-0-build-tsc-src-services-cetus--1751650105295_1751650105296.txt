@@ -1,0 +1,54 @@
+~/workspace$  npm run build && npm run postbuild
+
+> workspace@1.0.0 build
+> tsc
+
+src/services/cetus-dex.ts:55:38 - error TS2339: Property 'sdk' does not exist on type 'CetusDexService'.
+
+55       const poolConfigs = await this.sdk.Pool.getPools([]);
+                                        ~~~
+
+src/services/cetus-dex.ts:85:35 - error TS2339: Property 'sdk' does not exist on type 'CetusDexService'.
+
+85       const poolData = await this.sdk.Pool.getPool(pool.poolAddress);
+                                     ~~~
+
+src/services/cetus-dex.ts:141:33 - error TS2339: Property 'sdk' does not exist on type 'CetusDexService'.
+
+141       const swapTx = await this.sdk.Swap.createSwapTransactionPayload(swapParams);
+                                    ~~~
+
+src/services/cetus-dex.ts:194:34 - error TS2339: Property 'sdk' does not exist on type 'CetusDexService'.
+
+194       const preSwap = await this.sdk.Swap.preswap({
+                                     ~~~
+
+src/strategies/cetus-bluefin-arbitrage.ts:205:11 - error TS2322: Type 'boolean' is not assignable to type 'string'.
+
+205           buyFromCetus,
+              ~~~~~~~~~~~~
+
+src/strategies/cross-dex-arbitrage.ts:213:11 - error TS2740: Type '{ id: string; type: "cross-dex"; pools: TradingPair[]; path: string[]; expectedProfit: BigNumber; profitPercentage: BigNumber; tradeAmount: BigNumber; gasEstimate: BigNumber; confidence: BigNumber; timestamp: number; }' is missing the following properties from type 'FlashLoanOpportunity': strategy, asset, amount, estimatedGas, and 2 more.
+
+213     const opportunity: FlashLoanOpportunity = {
+              ~~~~~~~~~~~
+
+src/strategies/triangular-arbitrage.ts:220:7 - error TS2322: Type 'number' is not assignable to type 'BigNumber'.
+
+220       confidence: this.calculateConfidence(pairs, result.profitPercentage),
+          ~~~~~~~~~~
+
+  src/types/index.ts:52:3
+    52   confidence: BigNumber;
+         ~~~~~~~~~~
+    The expected type comes from property 'confidence' which is declared here on type 'FlashLoanOpportunity'
+
+
+Found 7 errors in 4 files.
+
+Errors  Files
+     4  src/services/cetus-dex.ts:55
+     1  src/strategies/cetus-bluefin-arbitrage.ts:205
+     1  src/strategies/cross-dex-arbitrage.ts:213
+     1  src/strategies/triangular-arbitrage.ts:220
+~/workspace$ 

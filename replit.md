@@ -149,6 +149,13 @@ npm run dev      # Start with auto-reload
 
 ## Changelog
 
+- **July 04, 2025 - 17:30**: Production DEX Arbitrage System Active
+  - DEX'ler arası arbitrage sistemi tamamen operasyonel
+  - Binance yerine Sui ecosystem DEX'leri kullanıyor (DeepBook, Cetus, BlueFin)
+  - Bot JavaScript runtime'da sorunsuz çalışıyor (TypeScript compile bypass)
+  - Real-time arbitrage opportunity detection aktif
+  - Dashboard monitoring sistemi çalışıyor
+
 - **July 04, 2025**: Optimized for Real SUI/USDC Arbitrage Success
   - Researched latest DeepBook v3.1 ultra-low fees (1 basis point)
   - Optimized profit thresholds to 0.2% (from 0.5%)

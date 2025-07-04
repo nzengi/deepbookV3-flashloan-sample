@@ -89,7 +89,7 @@ class RiskManagementService {
     calculateRiskAdjustedSize(opportunity) {
         const confidence = opportunity.confidence;
         const profitPercentage = opportunity.profitPercentage;
-        const kellyFraction = confidence * profitPercentage.toNumber() * 0.5;
+        const kellyFraction = confidence.toNumber() * (profitPercentage?.toNumber() || 0.01) * 0.5;
         const baseAmount = this.riskLimits.maxPositionSize;
         const kellyAmount = baseAmount.multipliedBy(Math.min(kellyFraction, 0.25));
         return bignumber_js_1.default.min(kellyAmount, opportunity.tradeAmount);
