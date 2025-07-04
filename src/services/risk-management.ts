@@ -79,8 +79,8 @@ export class RiskManagementService {
       const profitPercentage = opportunity.profitPercentage || new BigNumber(0);
       const slippageTolerance = this.riskLimits.maxSlippage || new BigNumber(0.01);
       
-      // For flash loans, we need profit > slippage + gas costs
-      const minRequiredProfit = slippageTolerance.plus(new BigNumber(0.002)); // Add 0.2% buffer for gas
+      // Ultra aggressive test mode - any detectable profit
+      const minRequiredProfit = new BigNumber(0.001); // 0.1% minimum for flash loan test
       
       if (profitPercentage.isLessThan(minRequiredProfit)) {
         Logger.risk('Opportunity rejected: profit below required threshold', {

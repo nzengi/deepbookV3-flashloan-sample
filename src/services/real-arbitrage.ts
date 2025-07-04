@@ -64,7 +64,7 @@ export class RealArbitrageService {
         if (opportunity) opportunities.push(opportunity);
       }
 
-      Logger.external(`DEX Arbitrage scan - SUI/USDC prices:`, {
+      Logger.info(`DEX Arbitrage scan - SUI/USDC prices:`, {
         deepBook: deepBookPrice.toFixed(4),
         cetus: cetusPrice?.toFixed(4) || 'N/A',
         bluefin: bluefinPrice?.toFixed(4) || 'N/A',
@@ -93,12 +93,12 @@ export class RealArbitrageService {
     const avgPrice = price1.plus(price2).dividedBy(2);
     const discrepancy = priceDiff.dividedBy(avgPrice);
 
-    // Check if arbitrage is profitable (min 0.3% for real trading)
-    if (discrepancy.isGreaterThan(0.003)) {
+    // Check if arbitrage is profitable (min 0.1% for test)
+    if (discrepancy.isGreaterThan(0.001)) {
       const tradeSize = this.calculateOptimalTradeSize(avgPrice);
       const expectedProfit = this.calculateExpectedProfit(tradeSize, discrepancy, avgPrice);
 
-      if (expectedProfit.isGreaterThan(0.05)) { // Minimum $0.05 profit for test
+      if (expectedProfit.isGreaterThan(0.01)) { // Minimum $0.01 profit for aggressive test
         const opportunity: FlashLoanOpportunity = {
           id: `${dex1}_${dex2}_${Date.now()}`,
           type: 'cross-dex',
